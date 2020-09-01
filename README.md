@@ -1,6 +1,12 @@
-# gitnotes
+<div align="center">
+
+# GitNotes
+
+<img src="./logo.png" width="400">
 
 Github based note web application
+
+</div>
 
 ## Project setup
 
