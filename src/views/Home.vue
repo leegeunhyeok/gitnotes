@@ -1,18 +1,50 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
-    <HelloWorld msg="Welcome to Your Vue.js + TypeScript App" />
+    <img :src="src" />
+    <h2>{{ bio }}</h2>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import HelloWorld from '@/components/HelloWorld.vue'; // @ is an alias to /src
+import github from '@/apis/github';
+import { defineComponent, onMounted, ref } from 'vue';
 
 export default defineComponent({
   name: 'Home',
-  components: {
-    HelloWorld,
+  setup() {
+    const src = ref('');
+    const bio = ref('');
+
+    // Test
+    onMounted(() => {
+      // github.setPersonalAccessToken('');
+      github.getUser('leegeunhyeok').then((data) => {
+        src.value = data.avatar_url || '';
+        bio.value = data.bio || '';
+      });
+
+      // github
+      //   .putRepositoryContent({
+      //     user: 'leegeunhyeok',
+      //     repository: 'test2',
+      //     path: 'test.txt',
+      //     content: 'SGVsbG8hIQ==',
+      //     message: 'TEST',
+      //   })
+      //   .then(console.log);
+    });
+
+    return { src, bio };
   },
 });
 </script>
+
+<style lang="scss" scoped>
+.home {
+  img {
+    max-width: 400px;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+}
+</style>
