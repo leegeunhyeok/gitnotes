@@ -35,3 +35,11 @@ npm run lint
 ### Customize configuration
 
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+## Resorce
+
+- Logo: [From Dribble, by Andreas Storm](https://dribbble.com/shots/10878981-Notion-Replacement-Icon) + Github icon (Edit by Geunhyeok LEE)
+
+## License
+
+MIT
