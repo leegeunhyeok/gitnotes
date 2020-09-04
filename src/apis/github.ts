@@ -1,6 +1,5 @@
-import rxjs from 'rxjs';
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Users, RepositoryContent } from '@/interfaces/github';
+import { Users, Repository, RepositoryFileContent, RepositoryUpdate } from '@/interfaces/github';
 
 const BASE_URL = 'https://api.github.com';
 
@@ -19,6 +18,8 @@ interface Commit {
   message: string;
   branch?: string;
 }
+
+type PutType = 'added' | 'updated' | 'unknown';
 
 // Issue in axios (config in data)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -115,13 +116,32 @@ class GithubAPI {
   }
 
   /**
+   * Create new repository
+   * - API Docs: https://docs.github.com/en/rest/reference/repos#create-a-repository-for-the-authenticated-user
+   * @param name
+   * @param description
+   */
+  async createRepository(name: string, description: string): Promise<Repository> {
+    if (!this._token) {
+      throw new GithubError('Github Personal Access Token not provided');
+    }
+
+    return (
+      await this._api.post<Repository>(`/user/repos`, {
+        name,
+        description,
+      })
+    ).data;
+  }
+
+  /**
    * Get repository file content
    * - API Docs: https://docs.github.com/en/rest/reference/repos#get-repository-content
    *
    * @param config Repository path config
    */
   async getRepositoryContent(config: RepositoryPath) {
-    const res = await this._api.get<RepositoryContent | RepositoryContent[]>(
+    const res = await this._api.get<RepositoryFileContent | RepositoryFileContent[]>(
       `/repos/${config.user}/${config.repository}/contents/${config.path}`,
     );
 
@@ -144,17 +164,20 @@ class GithubAPI {
     }
 
     const { user, repository, path } = config;
-    const res = await this._api.put<any>(`/repos/${user}/${repository}/contents/${path}`, {
-      message: config.message,
-      content: config.content,
-      ...(config.branch ? { branch: config.branch } : null),
-      ...(config.sha ? { sha: config.sha } : null),
-    });
+    const res = await this._api.put<RepositoryUpdate>(
+      `/repos/${user}/${repository}/contents/${path}`,
+      {
+        message: config.message,
+        content: config.content,
+        ...(config.branch ? { branch: config.branch } : null),
+        ...(config.sha ? { sha: config.sha } : null),
+      },
+    );
 
     let type = '';
     switch (res.status) {
       case 200:
-        type = 'add';
+        type = 'added';
         break;
 
       case 201:
@@ -166,8 +189,8 @@ class GithubAPI {
     }
 
     return {
-      data: res.data,
-      type,
+      data: res.data.content,
+      type: type as PutType,
     };
   }
 
@@ -183,7 +206,7 @@ class GithubAPI {
     }
 
     const { user, repository, path } = config;
-    const res = await this._api.delete<any>(`/repos/${user}/${repository}/contents/${path}`, {
+    const res = await this._api.delete<null>(`/repos/${user}/${repository}/contents/${path}`, {
       message: config.message,
       content: config.content,
       sha: config.sha,
@@ -191,8 +214,7 @@ class GithubAPI {
     });
 
     return {
-      data: res.data,
-      isDirectory: Array.isArray(res.data),
+      deleted: res.status === 200,
     };
   }
 }

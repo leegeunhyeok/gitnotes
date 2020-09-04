@@ -41,7 +41,15 @@ export interface Users {
   updated_at: StringOrEmpty;
 }
 
-export interface RepositoryContent {
+export interface Repository {
+  name: string;
+  full_name: string;
+  html_url: string;
+  description: string;
+  default_branch: string;
+}
+
+export interface RepositoryFileContent {
   name: string;
   path: string;
   sha: string;
@@ -51,4 +59,8 @@ export interface RepositoryContent {
   git_url: string;
   download_url: string;
   type: string;
+}
+
+export interface RepositoryUpdate {
+  content: RepositoryFileContent;
 }
