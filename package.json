@@ -1,24 +1,17 @@
 {
   "name": "gitnotes",
-  "description": "Github based note web application, GitNotes!",
   "version": "0.1.0",
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint"
-  },
+  "description": "Github based note web application, GitNotes!",
   "author": {
     "name": "leegeunhyeok",
     "email": "dev.ghlee@gmail.com",
     "url": "https://github.com/leegeunhyeok"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/leegeunhyeok/gitnotes"
-  },
-  "bugs": {
-    "email": "dev.ghlee@gmail.com",
-    "url": "https://github.com/leegeunhyeok/gitnotes/issues"
+  "scripts": {
+    "serve": "vue-cli-service serve",
+    "build": "vue-cli-service build",
+    "test:unit": "vue-cli-service test:unit",
+    "lint": "vue-cli-service lint"
   },
   "dependencies": {
     "axios": "^0.20.0",
@@ -31,6 +24,7 @@
     "vuex": "^4.0.0-0"
   },
   "devDependencies": {
+    "@types/jest": "^24.0.19",
     "@typescript-eslint/eslint-plugin": "^2.33.0",
     "@typescript-eslint/parser": "^2.33.0",
     "@vue/cli-plugin-babel": "~4.5.0",
@@ -38,14 +32,26 @@
     "@vue/cli-plugin-pwa": "~4.5.0",
     "@vue/cli-plugin-router": "~4.5.0",
     "@vue/cli-plugin-typescript": "~4.5.0",
+    "@vue/cli-plugin-unit-jest": "^4.5.4",
     "@vue/cli-plugin-vuex": "~4.5.0",
     "@vue/cli-service": "~4.5.0",
     "@vue/compiler-sfc": "^3.0.0-0",
     "@vue/eslint-config-typescript": "^5.0.2",
+    "@vue/test-utils": "^2.0.0-0",
     "eslint": "^6.7.2",
     "eslint-plugin-vue": "^7.0.0-0",
+    "jest": "^26.4.2",
     "node-sass": "^4.12.0",
     "sass-loader": "^8.0.2",
-    "typescript": "~3.9.3"
+    "typescript": "~3.9.3",
+    "vue-jest": "^5.0.0-0"
+  },
+  "bugs": {
+    "email": "dev.ghlee@gmail.com",
+    "url": "https://github.com/leegeunhyeok/gitnotes/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/leegeunhyeok/gitnotes"
   }
 }
