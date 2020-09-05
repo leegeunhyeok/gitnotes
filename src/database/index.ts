@@ -10,10 +10,10 @@ interface Columns {
 
 interface ColumnOption {
   type: ObjectStoreDataTypes;
-  unique?: boolean;
+  index?: boolean;
 }
 
-class GitNotesDB {
+export default class GitNotesDB {
   public static DB_NAME = 'gitnotes';
   private static instance: GitNotesDB | null = null;
   private _db: IDBDatabase | null = null;
@@ -25,7 +25,7 @@ class GitNotesDB {
 
   public static getInstance() {
     if (!GitNotesDB.instance) {
-      new GitNotesDB();
+      GitNotesDB.instance = new GitNotesDB();
     }
     return GitNotesDB.instance;
   }
@@ -39,7 +39,10 @@ class GitNotesDB {
   store(name: string, columns: Columns) {
     if (this._stores.has(name)) {
       throw Error(`${name} objectstore alraedy exist`);
+    } else if ('_id' in columns) {
+      throw Error(`_id column is reserved`);
     }
+
     this._stores.set(name, columns);
     return this;
   }
@@ -55,13 +58,12 @@ class GitNotesDB {
       request.onupgradeneeded = () => {
         const db = request.result;
         this._stores.forEach((columns, name) => {
-          const objectStore = db.createObjectStore(name);
-          Object.keys(columns).forEach(column => {
-            const option = columns[column];
-            objectStore.createIndex(column, column, {
-              unique: (option as ColumnOption)?.unique,
+          const objectStore = db.createObjectStore(name, { keyPath: '_id', autoIncrement: true });
+          Object.keys(columns)
+            .filter(column => (columns[column] as ColumnOption)?.index)
+            .forEach(column => {
+              objectStore.createIndex(column, column);
             });
-          });
         });
       };
     });
