@@ -2,9 +2,7 @@
  * Github API response data
  */
 
-type StringOrEmpty = string | null;
-type NumberOrEmpty = number | null;
-type BooleanOrEmpty = boolean | null;
+import { StringOrEmpty, NumberOrEmpty, BooleanOrEmpty } from '@/types';
 
 export interface Users {
   login: StringOrEmpty;
