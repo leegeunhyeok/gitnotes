@@ -1,19 +1,19 @@
 import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/Home.vue';
-import Welcome from '@/views/Welcome.vue';
+import Main from '@/views/Main.vue';
 import { provide, inject } from 'vue';
 
 const RouterSymbol = Symbol();
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    name: 'Home',
-    component: Home,
+    name: 'Main',
+    component: Main,
   },
   {
-    path: '/welcome',
-    name: 'Welcome',
-    component: Welcome,
+    path: '/home',
+    name: 'Home',
+    component: Home,
   },
 ];
 
