@@ -7,7 +7,7 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { provideStore } from '@/store';
-import { provideRouter } from './router';
+import { provideRouter } from '@/router';
 
 export default defineComponent({
   name: 'App',
@@ -19,6 +19,17 @@ export default defineComponent({
 </script>
 
 <style lang="scss">
+@import '@/styles';
+
+html,
+body,
+#app {
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
@@ -27,16 +38,7 @@ export default defineComponent({
   color: #2c3e50;
 }
 
-#nav {
-  padding: 30px;
-
-  a {
-    font-weight: bold;
-    color: #2c3e50;
-
-    &.router-link-exact-active {
-      color: #42b983;
-    }
-  }
+* {
+  box-sizing: border-box;
 }
 </style>
