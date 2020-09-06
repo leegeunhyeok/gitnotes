@@ -7,11 +7,13 @@
 <script lang="ts">
 import { defineComponent } from 'vue';
 import { provideStore } from '@/store';
+import { provideRouter } from './router';
 
 export default defineComponent({
   name: 'App',
   setup() {
     provideStore();
+    provideRouter();
   },
 });
 </script>
