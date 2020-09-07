@@ -10,7 +10,7 @@
           <input type="text" placeholder="username" v-model="username" />
         </div>
         <div class="component-group">
-          <button :disabled="!username">{{ username ? '시작하기' : '...'}}</button>
+          <Button color="blue" :disabled="!username">{{ username ? '시작하기' : '...'}}</Button>
         </div>
       </div>
     </transition>
@@ -19,9 +19,11 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue';
+import Button from '@/components/Button.vue';
 
 export default defineComponent({
   name: 'Main',
+  components: { Button },
   setup() {
     const doRegistration = ref(false);
     const username = ref('');
@@ -36,7 +38,7 @@ export default defineComponent({
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 .main {
   display: flex;
   flex-direction: column;
