@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, computed } from 'vue';
 import { useTouchable } from '@/compositions/Touchable';
 
 export interface ButtonProps {
@@ -51,10 +51,10 @@ export default defineComponent({
   border-radius: 3rem;
   color: $textColor;
   background-color: $backgroundColor;
-  transition: background-color 0.3s, opacity 0.5s;
+  transition: background-color 0.2s, opacity 0.5s;
 
   &.enter:not(:disabled) {
-    background-color: darken($backgroundColor, 10%);
+    background-color: darken($backgroundColor, 20%);
   }
 
   &:disabled {
