@@ -16,7 +16,6 @@ export default defineComponent({
     provideStore();
     provideRouter();
 
-    const db = GitNotesDB.getInstance();
     GitNotesDB.getInstance()
       .store('user', {
         name: String,
@@ -37,15 +36,7 @@ export default defineComponent({
         createdAt: Date,
         updatedAt: Date,
       })
-      .open(2)
-      .then(() => {
-        db.insert('tag', {
-          id: 'test',
-          name: 'james',
-          color: '#123123',
-          createdAt: new Date(),
-        });
-      });
+      .open(1);
   },
 });
 </script>
