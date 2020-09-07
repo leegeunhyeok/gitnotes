@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
+import { Router, createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/Home.vue';
 import Main from '@/views/Main.vue';
 import { provide, inject } from 'vue';
@@ -29,7 +29,7 @@ export const provideRouter = () => {
 };
 
 export const useRouter = () => {
-  const router = inject(RouterSymbol);
+  const router = inject<Router>(RouterSymbol);
   if (!router) {
     throw new Error('No router provided');
   }
