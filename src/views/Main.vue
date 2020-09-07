@@ -3,14 +3,14 @@
     <div class="main__logo">
       <img src="@/assets/logo.png" />
     </div>
-    <transition name="fade">
-      <div class="main__regist" :class="{ hide: !doRegistration }">
-        <h3>👋 Gitnub 계정을 입력해주세요!</h3>
+    <transition name="grow">
+      <div class="main__regist" v-if="doRegistration">
+        <h3>👋 Github 계정을 입력해주세요!</h3>
         <div class="component-group">
           <input type="text" placeholder="username" v-model="username" />
         </div>
         <div class="component-group">
-          <button :disabled="!username">{{buttonText}}</button>
+          <button :disabled="!username">{{ username ? '시작하기' : '...'}}</button>
         </div>
       </div>
     </transition>
@@ -18,26 +18,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref } from 'vue';
 
 export default defineComponent({
   name: 'Main',
   setup() {
     const doRegistration = ref(false);
     const username = ref('');
-    const buttonText = computed(() => (username.value ? `${username.value}로 시작하기` : '...'));
 
     // TODO: Check user data from IDB
     setTimeout(() => {
       doRegistration.value = true;
     }, 2000);
 
-    return { doRegistration, username, buttonText };
+    return { doRegistration, username };
   },
 });
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 .main {
   display: flex;
   flex-direction: column;
@@ -48,7 +47,7 @@ export default defineComponent({
 
   &__logo {
     width: 60%;
-    max-width: 260px;
+    max-width: 20rem;
 
     img {
       width: 100%;
@@ -56,15 +55,6 @@ export default defineComponent({
   }
 
   &__regist {
-    overflow: hidden;
-    max-height: 300px;
-    transition: max-height 0.5s, opacity 0.5s;
-
-    &.hide {
-      max-height: 0;
-      opacity: 0;
-    }
-
     input {
       text-align: center;
     }
