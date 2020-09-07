@@ -1,7 +1,14 @@
 <template>
   <div class="main">
     <div class="main__logo">
-      <img src="@/assets/logo.png" />
+      <transition name="fade" mode="out-in">
+        <div :key="1" v-if="userPhoto">
+          <Image :src="userPhoto" />
+        </div>
+        <div :key="2" v-else>
+          <img src="@/assets/logo.png" />
+        </div>
+      </transition>
     </div>
     <transition name="grow">
       <div class="main__regist" v-if="doRegistration">
@@ -18,22 +25,40 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue';
+import { from } from 'rxjs';
+import { delay } from 'rxjs/operators';
+import { defineComponent, onBeforeUnmount, ref } from 'vue';
+import { useRouter } from '@/router';
 import Button from '@/components/Button.vue';
+import Image from '@/components/Image.vue';
+import GitNotesDB from '@/database';
 
 export default defineComponent({
   name: 'Main',
-  components: { Button },
+  components: { Button, Image },
   setup() {
+    const router = useRouter();
     const doRegistration = ref(false);
     const username = ref('');
+    const userPhoto = ref('');
+    const subscription = from(GitNotesDB.getInstance().select('user'))
+      .pipe(delay(1000))
+      .subscribe({
+        next(users) {
+          doRegistration.value = !users.length;
+        },
+        error(e) {
+          doRegistration.value = true;
+          console.error(e);
+        },
+        complete() {
+          !doRegistration.value && router.push({ name: 'Home' });
+        },
+      });
 
-    // TODO: Check user data from IDB
-    setTimeout(() => {
-      doRegistration.value = true;
-    }, 2000);
+    onBeforeUnmount(() => subscription.unsubscribe());
 
-    return { doRegistration, username };
+    return { doRegistration, username, userPhoto };
   },
 });
 </script>

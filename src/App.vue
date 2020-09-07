@@ -36,7 +36,7 @@ export default defineComponent({
         createdAt: Date,
         updatedAt: Date,
       })
-      .open(1);
+      .version(1);
   },
 });
 </script>
