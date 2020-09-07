@@ -101,7 +101,6 @@ export default class GitNotesDB {
     }
 
     return this.open().then(() => {
-      console.log('opend');
       return new Promise((resolve: (value: T[]) => void, reject: (value: Event) => void) => {
         if (!this._db) {
           throw new Error('Database not opened');
