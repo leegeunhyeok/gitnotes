@@ -16,6 +16,7 @@ interface ColumnOption {
 export default class GitNotesDB {
   public static DB_NAME = 'gitnotes';
   private static instance: GitNotesDB | null = null;
+  private _version = 0;
   private _db: IDBDatabase | null = null;
   private _stores: Map<string, Columns> = new Map();
 
@@ -49,24 +50,18 @@ export default class GitNotesDB {
     );
   }
 
-  store(name: string, columns: Columns) {
-    if (this._stores.has(name)) {
-      throw Error(`${name} objectstore alraedy exist`);
-    } else if ('_id' in columns) {
-      throw Error(`_id column is reserved`);
-    }
+  private open() {
+    return new Promise((resolve: () => void, reject: (value: Event) => void) => {
+      if (this._db) {
+        resolve();
+        return;
+      }
 
-    this._stores.set(name, columns);
-    return this;
-  }
-
-  open(version: number) {
-    return new Promise((resolve: (value: Event) => void, reject: (value: Event) => void) => {
-      const request = self.indexedDB.open('gitnotes', version);
+      const request = self.indexedDB.open('gitnotes', this._version);
       request.onerror = reject;
-      request.onsuccess = event => {
+      request.onsuccess = () => {
         this._db = request.result;
-        resolve(event);
+        resolve();
       };
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -82,41 +77,63 @@ export default class GitNotesDB {
     });
   }
 
+  store(name: string, columns: Columns) {
+    if (this._stores.has(name)) {
+      throw Error(`${name} objectstore alraedy exist`);
+    } else if ('_id' in columns) {
+      throw Error(`_id column is reserved`);
+    }
+
+    this._stores.set(name, columns);
+    return this;
+  }
+
+  version(version: number) {
+    if (version < 0) {
+      throw new Error('Database version must be >= 0');
+    }
+    this._version = version;
+  }
+
   select<T>(storeName: string, where?: ObjectStoreWhere, limit?: number) {
     if (where && !this.objectStoreColumnValidator(storeName, where)) {
       throw new Error(`${storeName} object store columns and where condition columns is mismatch`);
     }
 
-    return new Promise((resolve: (value: T[]) => void, reject: (value: Event) => void) => {
-      if (!this._db) {
-        throw new Error('Database not opened');
-      }
-
-      const transaction = this._db.transaction(storeName);
-      const cursorRequest = transaction.objectStore(storeName).openCursor();
-      const records: T[] = [];
-      let cursorPosition = 0;
-      cursorRequest.onsuccess = () => {
-        const cursor = cursorRequest.result;
-        if (cursor) {
-          const record = cursor.value as T;
-          if (typeof limit === 'number' && limit < ++cursorPosition) {
-            resolve(records);
-            return;
-          }
-
-          if (!where) {
-            records.push(record);
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          } else if (Object.keys(where).every(key => (record as any)[key] === where[key])) {
-            records.push(record);
-          }
-        } else {
-          resolve(records);
+    return this.open().then(() => {
+      console.log('opend');
+      return new Promise((resolve: (value: T[]) => void, reject: (value: Event) => void) => {
+        if (!this._db) {
+          throw new Error('Database not opened');
         }
-      };
 
-      cursorRequest.onerror = reject;
+        const transaction = this._db.transaction(storeName);
+        const cursorRequest = transaction.objectStore(storeName).openCursor();
+        const records: T[] = [];
+        let cursorPosition = 0;
+        cursorRequest.onsuccess = () => {
+          const cursor = cursorRequest.result;
+          if (cursor) {
+            const record = cursor.value as T;
+            if (typeof limit === 'number' && limit < cursorPosition++) {
+              resolve(records);
+              return;
+            }
+
+            if (!where) {
+              records.push(record);
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            } else if (Object.keys(where).every(key => (record as any)[key] === where[key])) {
+              records.push(record);
+            }
+            cursor.continue();
+          } else {
+            resolve(records);
+          }
+        };
+
+        cursorRequest.onerror = reject;
+      });
     });
   }
 
@@ -125,18 +142,20 @@ export default class GitNotesDB {
       throw new Error(`${storeName} object store columns and value columns(or type) is mismatch`);
     }
 
-    return new Promise((resolve: (value: Event) => void, reject: (value: Event) => void) => {
-      if (!this._db) {
-        throw new Error('Database not opened');
-      }
+    return this.open().then(() => {
+      return new Promise((resolve: (value: Event) => void, reject: (value: Event) => void) => {
+        if (!this._db) {
+          throw new Error('Database not opened');
+        }
 
-      const transaction = this._db.transaction(storeName, 'readwrite');
-      const objectStore = transaction.objectStore(storeName);
-      objectStore.add(value);
+        const transaction = this._db.transaction(storeName, 'readwrite');
+        const objectStore = transaction.objectStore(storeName);
+        objectStore.add(value);
 
-      transaction.onabort = reject;
-      transaction.onerror = reject;
-      transaction.oncomplete = resolve;
+        transaction.onabort = reject;
+        transaction.onerror = reject;
+        transaction.oncomplete = resolve;
+      });
     });
   }
 
@@ -147,34 +166,36 @@ export default class GitNotesDB {
       throw new Error(`${storeName} object store columns and where condition columns is mismatch`);
     }
 
-    return new Promise((resolve: (value: number) => void, reject: (value: Event) => void) => {
-      if (!this._db) {
-        throw new Error('Database not opened');
-      }
-
-      const transaction = this._db.transaction(storeName, 'readwrite');
-      const cursorRequest = transaction.objectStore(storeName).openCursor();
-      let affectedRows = 0;
-
-      cursorRequest.onsuccess = () => {
-        const cursor = cursorRequest.result;
-
-        if (!cursor) {
-          return;
+    return this.open().then(() => {
+      return new Promise((resolve: (value: number) => void, reject: (value: Event) => void) => {
+        if (!this._db) {
+          throw new Error('Database not opened');
         }
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        if (where && Object.keys(where).every(key => (cursor.value as any)[key] === where[key])) {
-          cursor.update(value);
-          ++affectedRows;
-        }
-      };
+        const transaction = this._db.transaction(storeName, 'readwrite');
+        const cursorRequest = transaction.objectStore(storeName).openCursor();
+        let affectedRows = 0;
 
-      transaction.onabort = reject;
-      transaction.onerror = reject;
-      transaction.oncomplete = () => {
-        resolve(affectedRows);
-      };
+        cursorRequest.onsuccess = () => {
+          const cursor = cursorRequest.result;
+
+          if (!cursor) {
+            return;
+          }
+
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          if (where && Object.keys(where).every(key => (cursor.value as any)[key] === where[key])) {
+            cursor.update(value);
+            ++affectedRows;
+          }
+        };
+
+        transaction.onabort = reject;
+        transaction.onerror = reject;
+        transaction.oncomplete = () => {
+          resolve(affectedRows);
+        };
+      });
     });
   }
 
@@ -183,35 +204,37 @@ export default class GitNotesDB {
       throw new Error(`${storeName} object store columns and where condition columns is mismatch`);
     }
 
-    return new Promise((resolve: (value: Event) => void, reject: (value: Event) => void) => {
-      if (!this._db) {
-        throw new Error('Database not opened');
-      }
-
-      const transaction = this._db.transaction(storeName, 'readwrite');
-      const cursorRequest = transaction.objectStore(storeName).openCursor();
-
-      cursorRequest.onsuccess = () => {
-        const cursor = cursorRequest.result;
-
-        if (!cursor) {
-          return;
+    return this.open().then(() => {
+      return new Promise((resolve: (value: Event) => void, reject: (value: Event) => void) => {
+        if (!this._db) {
+          throw new Error('Database not opened');
         }
 
-        if (!where) {
-          cursor.delete();
-        } else if (
-          where &&
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          Object.keys(where).every(key => (cursor.value as any)[key] === where[key])
-        ) {
-          cursor.delete();
-        }
-      };
+        const transaction = this._db.transaction(storeName, 'readwrite');
+        const cursorRequest = transaction.objectStore(storeName).openCursor();
 
-      transaction.onabort = reject;
-      transaction.onerror = reject;
-      transaction.oncomplete = resolve;
+        cursorRequest.onsuccess = () => {
+          const cursor = cursorRequest.result;
+
+          if (!cursor) {
+            return;
+          }
+
+          if (!where) {
+            cursor.delete();
+          } else if (
+            where &&
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            Object.keys(where).every(key => (cursor.value as any)[key] === where[key])
+          ) {
+            cursor.delete();
+          }
+        };
+
+        transaction.onabort = reject;
+        transaction.onerror = reject;
+        transaction.oncomplete = resolve;
+      });
     });
   }
 }
