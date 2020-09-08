@@ -1,7 +1,6 @@
 @import 'component';
 @import 'transition';
 @import 'responsive';
-@import 'colors';
 
 * {
   box-sizing: border-box;
@@ -26,7 +25,6 @@ body {
 
   @include size(sm) {
     font-size: 16px;
-    color: #ddd;
   }
 
   @include size(xl) {

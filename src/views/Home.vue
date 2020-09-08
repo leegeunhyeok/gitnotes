@@ -1,40 +1,20 @@
 <template>
   <div class="home">
-    <img :src="src" />
-    <h2>{{ bio }}</h2>
+    <h2>{{ name }}</h2>
+    <div>
+      <button @click="increase">+</button>
+      <button @click="decrease">-</button>
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import github from '@/apis/github';
-import { defineComponent, onMounted, ref } from 'vue';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'Home',
   setup() {
-    const src = ref('');
-    const bio = ref('');
-
-    // Test
-    onMounted(() => {
-      // github.setPersonalAccessToken('');
-      github.getUser('leegeunhyeok').then((data) => {
-        src.value = data.avatar_url || '';
-        bio.value = data.bio || '';
-      });
-
-      // github
-      //   .putRepositoryContent({
-      //     user: 'leegeunhyeok',
-      //     repository: 'test2',
-      //     path: 'test.txt',
-      //     content: 'SGVsbG8hIQ==',
-      //     message: 'TEST',
-      //   })
-      //   .then(console.log);
-    });
-
-    return { src, bio };
+    // TODO
   },
 });
 </script>

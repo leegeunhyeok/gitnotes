@@ -1,20 +1,25 @@
 <template>
   <div id="app">
     <router-view />
+    <transition name="fade">
+      <Loading v-show="isLoading" />
+    </transition>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
-import { provideStore } from '@/store';
-import { provideRouter } from '@/router';
+import { defineComponent, computed } from 'vue';
+import { useStore } from 'vuex';
 import GitNotesDB from '@/database';
+
+import Loading from '@/components/Loading.vue';
 
 export default defineComponent({
   name: 'App',
+  components: { Loading },
   setup() {
-    provideStore();
-    provideRouter();
+    const store = useStore();
+    const isLoading = computed(() => store.state.loading);
 
     GitNotesDB.getInstance()
       .store('user', {
@@ -37,6 +42,8 @@ export default defineComponent({
         updatedAt: Date,
       })
       .version(1);
+
+    return { isLoading };
   },
 });
 </script>
