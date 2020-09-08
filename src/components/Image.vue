@@ -1,7 +1,7 @@
 <template>
   <div class="image">
     <transition name="fade">
-      <img :src="src" @load="checkRender" v-show="isLoaded" />
+      <img :src="src" @load="isRendered" @error="onError" v-show="!loading" />
     </transition>
   </div>
 </template>
@@ -21,24 +21,24 @@ export default defineComponent({
       required: true,
     },
   },
+  emits: {
+    'on-load': null,
+    'on-error': null,
+  },
   setup(props: ImageProps, { emit }: SetupContext) {
-    const loaded = ref(false);
     const rendered = ref(false);
-    const isLoaded = computed(() => loaded.value && rendered.value);
+    const loading = computed(() => !rendered.value);
 
-    const img = new Image();
-    img.src = computed(() => props.src).value;
-    img.onload = () => (loaded.value = true);
-    img.onerror = () => emit('on-error');
-
-    const checkRender = () => {
+    const isRendered = () => {
       requestAnimationFrame(() => {
         rendered.value = true;
         emit('on-load');
       });
     };
 
-    return { checkRender, isLoaded };
+    const onError = () => emit('on-error');
+
+    return { loading, isRendered, onError };
   },
 });
 </script>
@@ -50,6 +50,7 @@ export default defineComponent({
   background-color: #eee;
 
   img {
+    display: block;
     width: 100%;
   }
 }
