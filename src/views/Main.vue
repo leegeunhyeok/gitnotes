@@ -123,9 +123,15 @@ $width-limit: 350px;
     max-width: $width-limit;
     border-style: solid;
     border-width: 1px;
-    border-color: $white;
+    border-color: #fff;
     border-radius: 50%;
     overflow: hidden;
+    -webkit-backface-visibility: hidden;
+    -moz-backface-visibility: hidden;
+    backface-visibility: hidden;
+    -webkit-transform: translateZ(0);
+    -moz-transform: translateZ(0);
+    transform: translateZ(0);
 
     @include size(md) {
       width: $width-limit - 80px;
@@ -152,7 +158,7 @@ $width-limit: 350px;
     max-width: $width-limit;
 
     @include size(md) {
-      width: 60%;
+      width: 70%;
     }
 
     @include size(lg) {
