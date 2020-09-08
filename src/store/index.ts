@@ -1,46 +1,26 @@
-import { provide, inject } from 'vue';
-import { createStore, Store } from 'vuex';
-import userModule from '@/store/user';
+import { createStore, Store as VuexStore, CommitOptions, DispatchOptions } from 'vuex';
+import { State, state } from '@/store/state';
+import { Mutations, mutations } from '@/store/mutations';
+import { Actions, actions } from '@/store/actions';
 
-export interface RootState {
-  count: number;
-}
-
-const initalState: RootState = {
-  count: 0,
-};
-
-const StoreSymbol = Symbol();
 const store = createStore({
-  state: initalState,
-  mutations: {
-    SET_COUNT(state, count) {
-      state.count = count;
-    },
-  },
-  actions: {
-    INCREASE({ state, commit }) {
-      commit('SET_COUNT', state.count + 1);
-    },
-    DECREASE({ state, commit }) {
-      commit('SET_COUNT', state.count - 1);
-    },
-  },
-  modules: {
-    user: userModule,
-  },
+  state,
+  mutations,
+  actions,
 });
 
-export const provideStore = () => {
-  provide(StoreSymbol, store);
-};
-
-export const useStore = () => {
-  const store = inject<Store<RootState>>(StoreSymbol);
-  if (!store) {
-    throw new Error('No store provided');
-  }
-  return store;
+export type Store = Omit<VuexStore<State>, 'getters' | 'commit' | 'dispatch'> & {
+  commit<K extends keyof Mutations, P extends Parameters<Mutations[K]>[1]>(
+    key: K,
+    payload: P,
+    options?: CommitOptions,
+  ): ReturnType<Mutations[K]>;
+} & {
+  dispatch<K extends keyof Actions>(
+    key: K,
+    payload: Parameters<Actions[K]>[1],
+    options?: DispatchOptions,
+  ): ReturnType<Actions[K]>;
 };
 
 export default store;
