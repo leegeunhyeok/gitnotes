@@ -5,7 +5,7 @@ interface NotificationEvent {
 
 type NotificationHandler = (event: NotificationEvent) => void;
 
-class NotificationController {
+export default class NotificationController {
   public static DURATION = 3000;
   private static instance: NotificationController | null = null;
   private _timer = 0;
@@ -60,6 +60,5 @@ class NotificationController {
   }
 }
 
-export const useNotification = () => {
-  return NotificationController.getInstance();
-};
+export const showNotification = (message: string) =>
+  NotificationController.getInstance().showNotification(message);

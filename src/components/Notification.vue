@@ -6,7 +6,7 @@
 
 <script>
 import { defineComponent, ref } from 'vue';
-import { useNotification } from '@/services/notification';
+import Controller from '@/services/notification';
 
 export default defineComponent({
   name: 'Notification',
@@ -14,7 +14,7 @@ export default defineComponent({
     const message = ref('');
     const show = ref(false);
 
-    useNotification().register((event) => {
+    Controller.getInstance().register((event) => {
       event.message !== null && (message.value = event.message);
       show.value = event.show;
     });
