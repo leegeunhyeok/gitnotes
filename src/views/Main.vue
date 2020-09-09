@@ -21,7 +21,7 @@
               <Button color="blue">계속하기</Button>
             </div>
             <div class="component-group">
-              <a @click="available = false">다시 입력할래요</a>
+              <a @click="resetUserProfile">다시 입력할래요</a>
             </div>
           </div>
           <div v-else>
@@ -107,7 +107,10 @@ export default defineComponent({
         });
     };
 
-    const resetUserProfile = () => store.commit(MutationTypes.RESET_USER);
+    const resetUserProfile = () => {
+      available.value = false;
+      store.commit(MutationTypes.RESET_USER);
+    };
 
     onBeforeUnmount(() => subscription.unsubscribe());
 
