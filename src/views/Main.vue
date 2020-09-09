@@ -1,13 +1,13 @@
 <template>
   <div class="main">
-    <div class="main__logo" :class="{ outline: photoLoaded }">
+    <div class="main__logo" :class="{ outline: userPhoto }">
       <transition name="fade" mode="out-in">
         <Image
           :src="userPhoto"
           :key="1"
           @on-load="photoLoaded = true"
           @on-error="photoLoaded = false"
-          v-if="photoLoaded"
+          v-if="userPhoto"
         />
         <img src="@/assets/logo.png" :key="2" v-else />
       </transition>
@@ -15,19 +15,29 @@
     <transition name="grow">
       <div class="main__regist" v-if="doRegistration">
         <transition name="fade" mode="out-in">
-          <h3 v-if="photoLoaded">{{ userName }}</h3>
-          <h3 v-else>👋 Github 계정을 입력해주세요!</h3>
+          <div v-if="available">
+            <h3>{{ userName }}</h3>
+            <div class="component-group">
+              <Button color="blue">계속하기</Button>
+            </div>
+            <div class="component-group">
+              <a @click="available = false">다시 입력할래요</a>
+            </div>
+          </div>
+          <div v-else>
+            <h3>👋 Github 계정을 입력해주세요!</h3>
+            <div class="component-group">
+              <input type="text" placeholder="username" @keydown="resetUserProfile" v-model="input" />
+            </div>
+            <div class="component-group">
+              <Button
+                color="blue"
+                :disabled="!input || loading"
+                @click="getUserProfile"
+              >{{ input && !loading ? '시작하기' : '...' }}</Button>
+            </div>
+          </div>
         </transition>
-        <div class="component-group">
-          <input type="text" placeholder="username" v-model="input" />
-        </div>
-        <div class="component-group">
-          <Button
-            color="blue"
-            :disabled="!input"
-            @click="getUserProfile"
-          >{{ input ? '시작하기' : '...'}}</Button>
-        </div>
       </div>
     </transition>
   </div>
@@ -40,12 +50,13 @@ import { defineComponent, onBeforeUnmount, ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { Store } from '@/store';
-import Button from '@/components/Button.vue';
-import Image from '@/components/Image.vue';
 import GitNotesDB from '@/database';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
-import { useNotification } from '@/services/notification';
+import { showNotification } from '@/services/notification';
+import { ErrorMessages } from '@/messages';
+import Button from '@/components/Button.vue';
+import Image from '@/components/Image.vue';
 
 export default defineComponent({
   name: 'Main',
@@ -56,13 +67,14 @@ export default defineComponent({
     const doRegistration = ref(false);
     const photoLoaded = ref(false);
     const input = ref('');
-    const loading = ref(false);
+    const available = ref(false);
+    const loading = computed(() => store.state.loading);
     const userName = computed(() => store.state.name);
     const userBio = computed(() => store.state.bio);
     const userPhoto = computed(() => store.state.photo);
 
     const subscription = from(GitNotesDB.getInstance().select('user'))
-      .pipe(delay(1000))
+      .pipe(delay(1500))
       .subscribe({
         next(users) {
           doRegistration.value = !users.length;
@@ -76,17 +88,17 @@ export default defineComponent({
         },
       });
 
-    onBeforeUnmount(() => subscription.unsubscribe());
-
     const getUserProfile = () => {
-      loading.value = true;
       store.commit(MutationTypes.SET_LOADING, true);
       store
         .dispatch(ActionTypes.GET_PROFILE, input.value)
+        .then(() => (available.value = true))
         .catch((err) => {
-          loading.value = false;
-          if (err.response.status === 404) {
-            useNotification().showNotification('Hello!');
+          const status = err.response.status;
+          if (status === 403) {
+            showNotification(ErrorMessages.LIMIT_EXECEEDED);
+          } else if (status === 404) {
+            showNotification(ErrorMessages.USER_NOT_FOUND);
           }
         })
         .finally(() => {
@@ -95,12 +107,18 @@ export default defineComponent({
         });
     };
 
+    const resetUserProfile = () => store.commit(MutationTypes.RESET_USER);
+
+    onBeforeUnmount(() => subscription.unsubscribe());
+
     return {
       doRegistration,
       input,
-      loading,
+      available,
       photoLoaded,
       getUserProfile,
+      resetUserProfile,
+      loading,
       userName,
       userBio,
       userPhoto,
@@ -124,8 +142,8 @@ $width-limit: 350px;
   height: 100%;
 
   &__logo {
-    width: 60vw;
-    height: 60vw;
+    width: 70vw;
+    height: 70vw;
     max-width: $width-limit;
     border-style: solid;
     border-width: 1px;
@@ -162,13 +180,18 @@ $width-limit: 350px;
   &__regist {
     width: 80%;
     max-width: $width-limit;
+    height: 10.8rem;
 
     @include size(md) {
-      width: 70%;
+      width: 75%;
     }
 
     @include size(lg) {
       width: 40%;
+    }
+
+    h3 {
+      height: 30px;
     }
 
     input {
@@ -178,6 +201,12 @@ $width-limit: 350px;
     input,
     button {
       width: 100%;
+    }
+
+    a {
+      cursor: pointer;
+      font-size: 0.8rem;
+      color: #999;
     }
   }
 }
