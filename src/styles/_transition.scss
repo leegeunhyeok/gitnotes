@@ -20,3 +20,12 @@
 .grow-enter-to {
   max-height: 300px;
 }
+
+.notification-enter-active,
+.notification-leave-active {
+  transition: 0.6s;
+}
+.notification-enter-from,
+.notification-leave-to {
+  transform: translate(-50%, -100px) !important;
+}

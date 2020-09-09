@@ -1,5 +1,6 @@
 <template>
   <div id="app">
+    <Notification />
     <router-view />
     <transition name="fade">
       <Loading v-show="isLoading" />
@@ -12,11 +13,12 @@ import { defineComponent, computed } from 'vue';
 import { useStore } from 'vuex';
 import GitNotesDB from '@/database';
 
+import Notification from '@/components/Notification.vue';
 import Loading from '@/components/Loading.vue';
 
 export default defineComponent({
   name: 'App',
-  components: { Loading },
+  components: { Notification, Loading },
   setup() {
     const store = useStore();
     const isLoading = computed(() => store.state.loading);

@@ -1,13 +1,13 @@
 <template>
   <div class="main">
-    <div class="main__logo" :class="{ outline: loading }">
+    <div class="main__logo" :class="{ outline: photoLoaded }">
       <transition name="fade" mode="out-in">
         <Image
           :src="userPhoto"
           :key="1"
           @on-load="photoLoaded = true"
           @on-error="photoLoaded = false"
-          v-if="loading"
+          v-if="photoLoaded"
         />
         <img src="@/assets/logo.png" :key="2" v-else />
       </transition>
@@ -45,6 +45,7 @@ import Image from '@/components/Image.vue';
 import GitNotesDB from '@/database';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
+import { useNotification } from '@/services/notification';
 
 export default defineComponent({
   name: 'Main',
@@ -82,7 +83,12 @@ export default defineComponent({
       store.commit(MutationTypes.SET_LOADING, true);
       store
         .dispatch(ActionTypes.GET_PROFILE, input.value)
-        .catch((err) => (loading.value = false && console.log(err.response.status)))
+        .catch((err) => {
+          loading.value = false;
+          if (err.response.status === 404) {
+            useNotification().showNotification('Hello!');
+          }
+        })
         .finally(() => {
           store.commit(MutationTypes.SET_LOADING, false);
           store.state.name || store.commit(MutationTypes.SET_NAME, input.value);
