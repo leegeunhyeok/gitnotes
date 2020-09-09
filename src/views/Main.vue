@@ -27,7 +27,13 @@
           <div v-else>
             <h3>👋 Github 계정을 입력해주세요!</h3>
             <div class="component-group">
-              <input type="text" placeholder="username" @keydown="resetUserProfile" v-model="input" />
+              <input
+                type="text"
+                placeholder="username"
+                spellcheck="false"
+                @keydown="resetUserProfile"
+                v-model="input"
+              />
             </div>
             <div class="component-group">
               <Button
