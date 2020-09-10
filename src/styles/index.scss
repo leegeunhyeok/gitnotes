@@ -1,3 +1,4 @@
+@import 'colors';
 @import 'component';
 @import 'transition';
 @import 'responsive';
@@ -35,4 +36,9 @@ body {
   @include size(xl) {
     font-size: 18px;
   }
+}
+
+a,
+a:visited {
+  color: $blue;
 }

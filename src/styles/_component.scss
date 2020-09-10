@@ -1,6 +1,14 @@
 div.component-group {
   width: 100%;
   margin-bottom: 0.5rem;
+
+  img {
+    max-width: 100%;
+  }
+
+  p {
+    font-size: 0.8rem;
+  }
 }
 
 input {
