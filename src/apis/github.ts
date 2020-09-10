@@ -107,6 +107,17 @@ class GithubAPI {
 
   /**
    * Get target user information
+   * - API Docs: https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
+   */
+  async me(): Promise<Users> {
+    if (!this._token) {
+      throw new GithubError('Github Personal Access Token not provided');
+    }
+    return (await this._api.get<Users>(`/users`)).data;
+  }
+
+  /**
+   * Get target user information
    * - API Docs: https://docs.github.com/en/rest/reference/users#get-a-user
    *
    * @param username Target username
