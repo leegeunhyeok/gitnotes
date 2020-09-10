@@ -1,25 +1,14 @@
 <template>
-  <transition name="notification">
-    <div class="notification" v-show="show">{{ message }}</div>
-  </transition>
+  <div class="notification">{{ message }}</div>
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue';
-import Controller from '@/services/notification';
+import { defineComponent } from 'vue';
 
 export default defineComponent({
   name: 'Notification',
-  setup() {
-    const message = ref('');
-    const show = ref(false);
-
-    Controller.getInstance().register((event) => {
-      event.message !== null && (message.value = event.message);
-      show.value = event.show;
-    });
-
-    return { message, show };
+  props: {
+    message: String,
   },
 });
 </script>
