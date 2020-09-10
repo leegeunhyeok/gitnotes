@@ -18,7 +18,7 @@
           <div v-if="available">
             <h3>{{ userName }}</h3>
             <div class="component-group">
-              <Button color="blue">계속하기</Button>
+              <Button color="blue" @click="nextToRegist">계속하기</Button>
             </div>
             <div class="component-group">
               <a @click="resetUserProfile">다시 입력할래요</a>
@@ -36,11 +36,9 @@
               />
             </div>
             <div class="component-group">
-              <Button
-                color="blue"
-                :disabled="!input || loading"
-                @click="getUserProfile"
-              >{{ input && !loading ? '시작하기' : '...' }}</Button>
+              <Button color="blue" :disabled="!input || loading" @click="getUserProfile">{{
+                input && !loading ? '시작하기' : '...'
+              }}</Button>
             </div>
           </div>
         </transition>
@@ -50,17 +48,16 @@
 </template>
 
 <script lang="ts">
-import { from } from 'rxjs';
-import { delay } from 'rxjs/operators';
 import { defineComponent, onBeforeUnmount, ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
-import { Store } from '@/store';
-import GitNotesDB from '@/database';
+import { from } from 'rxjs';
+import { delay } from 'rxjs/operators';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
-import { ErrorMessages } from '@/messages';
+import M from '@/messages';
+import GitNotesDB from '@/database';
 import Button from '@/components/Button.vue';
 import Image from '@/components/Image.vue';
 
@@ -68,7 +65,7 @@ export default defineComponent({
   name: 'Main',
   components: { Button, Image },
   setup() {
-    const store = useStore() as Store;
+    const store = useStore();
     const router = useRouter();
     const doRegistration = ref(false);
     const photoLoaded = ref(false);
@@ -99,12 +96,12 @@ export default defineComponent({
       store
         .dispatch(ActionTypes.GET_PROFILE, input.value)
         .then(() => (available.value = true))
-        .catch((err) => {
+        .catch(err => {
           const status = err.response.status;
           if (status === 403) {
-            showNotification(ErrorMessages.LIMIT_EXECEEDED);
+            showNotification(M.LIMIT_EXECEEDED);
           } else if (status === 404) {
-            showNotification(ErrorMessages.USER_NOT_FOUND);
+            showNotification(M.USER_NOT_FOUND);
           }
         })
         .finally(() => {
@@ -118,6 +115,8 @@ export default defineComponent({
       store.commit(MutationTypes.RESET_USER);
     };
 
+    const nextToRegist = () => router.push({ name: 'Regist' });
+
     onBeforeUnmount(() => subscription.unsubscribe());
 
     return {
@@ -127,6 +126,7 @@ export default defineComponent({
       photoLoaded,
       getUserProfile,
       resetUserProfile,
+      nextToRegist,
       loading,
       userName,
       userBio,

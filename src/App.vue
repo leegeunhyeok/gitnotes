@@ -1,7 +1,13 @@
 <template>
   <div id="app">
-    <Notification />
-    <router-view />
+    <transition name="notification">
+      <Notification :message="message" v-show="show" />
+    </transition>
+    <router-view v-slot="{ Component }">
+      <transition name="fade" mode="out-in">
+        <component :is="Component" />
+      </transition>
+    </router-view>
     <transition name="fade">
       <Loading v-show="isLoading" />
     </transition>
@@ -9,10 +15,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { useStore } from 'vuex';
 import GitNotesDB from '@/database';
-
+import Controller from '@/services/notification';
 import Notification from '@/components/Notification.vue';
 import Loading from '@/components/Loading.vue';
 
@@ -22,6 +28,13 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const isLoading = computed(() => store.state.loading);
+    const message = ref('');
+    const show = ref(false);
+
+    Controller.getInstance().register(event => {
+      event.message !== null && (message.value = event.message);
+      show.value = event.show;
+    });
 
     GitNotesDB.getInstance()
       .store('user', {
@@ -45,7 +58,7 @@ export default defineComponent({
       })
       .version(1);
 
-    return { isLoading };
+    return { message, show, isLoading };
   },
 });
 </script>

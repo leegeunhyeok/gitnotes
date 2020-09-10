@@ -1,6 +1,8 @@
 import { Router, createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/Home.vue';
 import Main from '@/views/Main.vue';
+import Regist from '@/views/Regist.vue';
+import Repository from '@/views/Repository.vue';
 import { provide, inject } from 'vue';
 
 const RouterSymbol = Symbol();
@@ -14,6 +16,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/home',
     name: 'Home',
     component: Home,
+  },
+  {
+    path: '/regist',
+    name: 'Regist',
+    component: Regist,
+  },
+  {
+    path: '/repository',
+    name: 'Repository',
+    component: Repository,
   },
 ];
 
