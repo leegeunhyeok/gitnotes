@@ -6,6 +6,7 @@ export enum MutationTypes {
   SET_NAME = 'SET_NAME',
   SET_BIO = 'SET_BIO',
   SET_PHOTO = 'SET_PHOTO',
+  SET_TOKEN = 'SET_TOKEN',
   RESET_USER = 'RESET_USER',
 }
 
@@ -14,6 +15,7 @@ export type Mutations<S = State> = {
   [MutationTypes.SET_NAME](state: S, payload: string): void;
   [MutationTypes.SET_BIO](state: S, payload: string): void;
   [MutationTypes.SET_PHOTO](state: S, payload: string): void;
+  [MutationTypes.SET_TOKEN](state: S, payload: string): void;
   [MutationTypes.RESET_USER](state: S): void;
 };
 
@@ -29,6 +31,9 @@ export const mutations: MutationTree<State> & Mutations = {
   },
   [MutationTypes.SET_PHOTO](state, photo: string) {
     state.photo = photo;
+  },
+  [MutationTypes.SET_TOKEN](state, token: string) {
+    state.token = token;
   },
   [MutationTypes.RESET_USER](state) {
     state.name = '';
