@@ -23,6 +23,7 @@ export default class NotificationController {
     return NotificationController.instance;
   }
 
+  // Send true state to handler
   private show(message: string) {
     this.f &&
       this.f({
@@ -35,6 +36,7 @@ export default class NotificationController {
     }, NotificationController.DURATION);
   }
 
+  // Send false/empty message state to handler
   private hide() {
     this.f &&
       this.f({

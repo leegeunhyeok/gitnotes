@@ -55,7 +55,7 @@ import Button from '@/components/Button';
 import Modal from '@/components/Modal';
 
 export default defineComponent({
-  name: 'Repository',
+  name: 'Regist',
   components: { Button, Modal },
   setup() {
     const store = useStore();
@@ -63,15 +63,18 @@ export default defineComponent({
     const token = ref('');
     const showModal = ref(false);
 
+    // Github Personal Access Token validation
     const tokenValidation = () => {
       store.commit(MutationTypes.SET_LOADING, true);
       GithubAPI.setPersonalAccessToken(token.value);
       GithubAPI.me()
         .then(() => {
+          // Validated! -> Go to next step
           store.commit(MutationTypes.SET_TOKEN, token.value);
           router.push({ name: 'Repository' });
         })
         .catch(err => {
+          // Error! -> Notification
           const status = err.response.status;
           if (status === 401) {
             showNotification(M.TOKEN_CHECK);
@@ -79,16 +82,10 @@ export default defineComponent({
             showNotification(messageFrom(status));
           }
         })
-        .finally(() => {
-          store.commit(MutationTypes.SET_LOADING, false);
-        });
+        .finally(() => store.commit(MutationTypes.SET_LOADING, false));
     };
 
-    return {
-      token,
-      showModal,
-      tokenValidation,
-    };
+    return { token, showModal, tokenValidation };
   },
 });
 </script>

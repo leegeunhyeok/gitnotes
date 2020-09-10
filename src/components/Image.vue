@@ -29,6 +29,8 @@ export default defineComponent({
     const rendered = ref(false);
     const loading = computed(() => !rendered.value);
 
+    // 1. Image onload (Focused at network)
+    // 2. Waiting for requestAnimationFrame() -> Triggered after image render
     const isRendered = () => {
       requestAnimationFrame(() => {
         rendered.value = true;

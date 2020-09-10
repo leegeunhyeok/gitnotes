@@ -3,13 +3,13 @@
     <div class="modal__mask">
       <div class="modal__panel">
         <header>
-          <slot name="header">AA</slot>
+          <slot name="header"></slot>
         </header>
         <main>
-          <slot name="body">AA</slot>
+          <slot name="body"></slot>
         </main>
         <footer>
-          <slot name="footer">AA</slot>
+          <slot name="footer"></slot>
         </footer>
       </div>
     </div>

@@ -76,8 +76,9 @@ export default defineComponent({
     const userBio = computed(() => store.state.bio);
     const userPhoto = computed(() => store.state.photo);
 
+    // Check store user data from IDB
     const subscription = from(GitNotesDB.getInstance().select('user'))
-      .pipe(delay(1500))
+      .pipe(delay(1500)) // 1.5 Sec delay
       .subscribe({
         next(users) {
           doRegistration.value = !users.length;
@@ -87,15 +88,18 @@ export default defineComponent({
           console.error(e);
         },
         complete() {
+          // If has stored user data -> No ragistration
+          // Else -> Do ragistration
           !doRegistration.value && router.push({ name: 'Home' });
         },
       });
 
+    // Get user profile data from Github API
     const getUserProfile = () => {
       store.commit(MutationTypes.SET_LOADING, true);
       store
         .dispatch(ActionTypes.GET_PROFILE, input.value)
-        .then(() => (available.value = true))
+        .then(() => (available.value = true)) // Success
         .catch(err => {
           const status = err.response.status;
           if (status === 403) {
@@ -110,6 +114,7 @@ export default defineComponent({
         });
     };
 
+    // Reset user state (vuex)
     const resetUserProfile = () => {
       available.value = false;
       store.commit(MutationTypes.RESET_USER);

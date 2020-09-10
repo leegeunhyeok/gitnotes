@@ -39,5 +39,6 @@ export const mutations: MutationTree<State> & Mutations = {
     state.name = '';
     state.bio = '';
     state.photo = '';
+    state.token = '';
   },
 };

@@ -28,14 +28,17 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const isLoading = computed(() => store.state.loading);
+    // Notification state
     const message = ref('');
     const show = ref(false);
 
+    // Notification event bind + state management
     Controller.getInstance().register(event => {
       event.message !== null && (message.value = event.message);
       show.value = event.show;
     });
 
+    // Create basic IDB object stores.
     GitNotesDB.getInstance()
       .store('user', {
         name: String,
