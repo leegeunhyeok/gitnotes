@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { defineComponent, ref } from 'vue';
+import { defineComponent, onBeforeMount, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
 import { MutationTypes } from '@/store/mutations';
@@ -62,6 +62,9 @@ export default defineComponent({
     const router = useRouter();
     const token = ref('');
     const showModal = ref(false);
+
+    // Need user name
+    onBeforeMount(() => !store.state.name && router.push({ name: 'Main' }));
 
     // Github Personal Access Token validation
     const tokenValidation = () => {
@@ -103,6 +106,7 @@ $width-limit: 350px;
   align-items: center;
   width: 100%;
   height: 100%;
+  padding-top: 2rem;
 
   &__form {
     width: 80%;

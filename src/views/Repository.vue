@@ -19,9 +19,11 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, onBeforeMount, ref, computed } from 'vue';
 import { useStore } from '@/store';
+import { useRouter } from 'vue-router';
 import { ActionTypes } from '@/store/actions';
+import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
 import MESSAGES, { messageFrom } from '@/messages';
 import Button from '@/components/Button.vue';
@@ -31,6 +33,7 @@ export default defineComponent({
   components: { Button },
   setup() {
     const store = useStore();
+    const router = useRouter();
     const createNewRepository = ref(true);
     const repositoryName = ref('');
     const nextText = computed(() => (createNewRepository.value ? '새로 만들기' : '저장소 찾기'));
@@ -38,13 +41,17 @@ export default defineComponent({
       createNewRepository.value ? '기존 저장소로 시작할래요' : '새 저장소에 시작할래요',
     );
 
+    // Need user name & token
+    onBeforeMount(() => !(store.state.name && store.state.token) && router.push({ name: 'Main' }));
+
     const createRepository = () => {
-      store
+      return store
         .dispatch(ActionTypes.CREATE_REPOSITORY, repositoryName.value)
         .then(() => {
           // TODO
         })
         .catch((err) => {
+          console.log(err);
           const status = err.response.status;
           if (status === 422) {
             showNotification(MESSAGES.ALREADY_EXIST_REPO);
@@ -55,7 +62,7 @@ export default defineComponent({
     };
 
     const findRepository = () => {
-      store
+      return store
         .dispatch(ActionTypes.USE_EXIST_REPOSITORY, repositoryName.value)
         .then(() => {
           // TODO
@@ -71,7 +78,11 @@ export default defineComponent({
     };
 
     const doRepositoryTask = () => {
-      createNewRepository.value ? createRepository() : findRepository();
+      store.commit(MutationTypes.SET_LOADING, true);
+      const job = createNewRepository.value ? createRepository() : findRepository();
+      job.finally(() => {
+        store.commit(MutationTypes.SET_LOADING, false);
+      });
     };
 
     return {
@@ -98,6 +109,7 @@ $width-limit: 350px;
   align-items: center;
   width: 100%;
   height: 100%;
+  padding-top: 2rem;
 
   &__form {
     width: 80%;
