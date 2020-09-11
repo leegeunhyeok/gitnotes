@@ -50,6 +50,7 @@ import { useRouter } from 'vue-router';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
 import GithubAPI from '@/apis/github';
+import GitNotesDB from '@/database';
 import M, { messageFrom } from '@/messages';
 import Button from '@/components/Button';
 import Modal from '@/components/Modal';
@@ -72,13 +73,22 @@ export default defineComponent({
       GithubAPI.setPersonalAccessToken(token.value);
       GithubAPI.me()
         .then(() => {
-          // Validated! -> Go to next step
+          // Validated! -> Store user data -> Go to next step
           store.commit(MutationTypes.SET_TOKEN, token.value);
-          router.push({ name: 'Repository' });
+          return GitNotesDB.getInstance()
+            .insert('user', {
+              name: store.state.name,
+              bio: store.state.bio,
+              photo: store.state.photo,
+              token: store.state.token,
+            })
+            .then(() => {
+              router.push({ name: 'Repository' });
+            });
         })
         .catch((err) => {
           // Error! -> Notification
-          const status = err.response.status;
+          const status = err?.response?.status;
           if (status === 401) {
             showNotification(M.TOKEN_CHECK);
           } else {

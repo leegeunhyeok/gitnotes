@@ -1,7 +1,7 @@
 import { Router, createRouter, createWebHistory, RouteRecordRaw } from 'vue-router';
 import Home from '@/views/Home.vue';
 import Main from '@/views/Main.vue';
-import Regist from '@/views/Regist.vue';
+import Token from '@/views/Token.vue';
 import Repository from '@/views/Repository.vue';
 import { provide, inject } from 'vue';
 
@@ -18,9 +18,9 @@ const routes: Array<RouteRecordRaw> = [
     component: Home,
   },
   {
-    path: '/regist',
-    name: 'Regist',
-    component: Regist,
+    path: '/token',
+    name: 'Token',
+    component: Token,
   },
   {
     path: '/repository',
