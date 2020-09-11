@@ -44,7 +44,11 @@ export default defineComponent({
         name: String,
         bio: String,
         photo: String,
-        pat: String,
+        token: String,
+      })
+      .store('repository', {
+        name: String,
+        branch: String,
       })
       .store('tag', {
         id: String,
