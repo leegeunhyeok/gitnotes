@@ -18,7 +18,7 @@
           <div v-if="available">
             <h3>{{ userName }}</h3>
             <div class="component-group">
-              <Button color="blue" @click="nextToRegist">계속하기</Button>
+              <Button color="blue" @click="nextToRegistToken">계속하기</Button>
             </div>
             <div class="component-group">
               <a @click="resetUserProfile">다시 입력할래요</a>
@@ -59,7 +59,7 @@ import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
 import GithubAPI from '@/apis/github';
-import M from '@/messages';
+import M, { messageFrom } from '@/messages';
 import GitNotesDB from '@/database';
 import Button from '@/components/Button.vue';
 import Image from '@/components/Image.vue';
@@ -106,11 +106,13 @@ export default defineComponent({
         .dispatch(ActionTypes.GET_PROFILE, input.value)
         .then(() => (available.value = true)) // Success
         .catch((err) => {
-          const status = err.response.status;
+          const status = err?.response?.status;
           if (status === 403) {
             showNotification(M.LIMIT_EXECEEDED);
           } else if (status === 404) {
             showNotification(M.USER_NOT_FOUND);
+          } else {
+            showNotification(messageFrom(status));
           }
         })
         .finally(() => {
@@ -125,7 +127,7 @@ export default defineComponent({
       store.commit(MutationTypes.RESET_USER);
     };
 
-    const nextToRegist = () => router.push({ name: 'Regist' });
+    const nextToRegistToken = () => router.push({ name: 'Token' });
 
     onBeforeUnmount(() => subscription.unsubscribe());
 
@@ -136,7 +138,7 @@ export default defineComponent({
       photoLoaded,
       getUserProfile,
       resetUserProfile,
-      nextToRegist,
+      nextToRegistToken,
       loading,
       userName,
       userBio,

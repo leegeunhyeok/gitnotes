@@ -25,7 +25,8 @@ import { useRouter } from 'vue-router';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
-import MESSAGES, { messageFrom } from '@/messages';
+import GitNotesDB from '@/database';
+import M, { messageFrom } from '@/messages';
 import Button from '@/components/Button.vue';
 
 export default defineComponent({
@@ -44,17 +45,27 @@ export default defineComponent({
     // Need user name & token
     onBeforeMount(() => !(store.state.name && store.state.token) && router.push({ name: 'Main' }));
 
+    const saveRepositoryAndContinue = () => {
+      return GitNotesDB.getInstance()
+        .insert('repository', {
+          name: store.state.repository,
+          branch: store.state.branch,
+        })
+        .then(() => {
+          // TODO: create base file, routing, etc..
+        });
+    };
+
     const createRepository = () => {
       return store
         .dispatch(ActionTypes.CREATE_REPOSITORY, repositoryName.value)
         .then(() => {
-          // TODO
+          return saveRepositoryAndContinue();
         })
         .catch((err) => {
-          console.log(err);
-          const status = err.response.status;
+          const status = err?.response?.status;
           if (status === 422) {
-            showNotification(MESSAGES.ALREADY_EXIST_REPO);
+            showNotification(M.ALREADY_EXIST_REPO);
           } else {
             showNotification(messageFrom(status));
           }
@@ -65,12 +76,12 @@ export default defineComponent({
       return store
         .dispatch(ActionTypes.USE_EXIST_REPOSITORY, repositoryName.value)
         .then(() => {
-          // TODO
+          return saveRepositoryAndContinue();
         })
         .catch((err) => {
-          const status = err.response.status;
+          const status = err?.response?.status;
           if (status === 404) {
-            showNotification(MESSAGES.REPO_NOT_FOIND);
+            showNotification(M.REPO_NOT_FOIND);
           } else {
             showNotification(messageFrom(status));
           }
@@ -79,8 +90,7 @@ export default defineComponent({
 
     const doRepositoryTask = () => {
       store.commit(MutationTypes.SET_LOADING, true);
-      const job = createNewRepository.value ? createRepository() : findRepository();
-      job.finally(() => {
+      (createNewRepository.value ? createRepository() : findRepository()).finally(() => {
         store.commit(MutationTypes.SET_LOADING, false);
       });
     };
