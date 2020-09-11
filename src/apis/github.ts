@@ -66,8 +66,12 @@ class AxiosController {
     return this.responseHandler<T>(await this._axios.delete(url, config));
   }
 
-  setCommonHeader(key: string, value: string) {
-    this._axios.defaults.headers.common[key] = value;
+  setAuthorizationToken(token: string) {
+    this._axios.defaults.headers.common['Authorization'] = `token ${token}`;
+  }
+
+  resetAuthorizationToken() {
+    delete this._axios.defaults.headers.common['Authorization'];
   }
 }
 
@@ -102,7 +106,15 @@ class GithubAPI {
    */
   setPersonalAccessToken(token: string) {
     this._token = token;
-    this._api.setCommonHeader('Authorization', `token ${this._token}`);
+    this._api.setAuthorizationToken(this._token);
+  }
+
+  /**
+   * Remove token
+   */
+  resetPersonalAccessToken() {
+    this._token = undefined;
+    this._api.resetAuthorizationToken();
   }
 
   /**

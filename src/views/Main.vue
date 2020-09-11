@@ -1,13 +1,13 @@
 <template>
   <div class="main">
-    <div class="main__logo" :class="{ outline: userPhoto }">
+    <div class="main__logo" :class="{ outline: available && userPhoto }">
       <transition name="fade" mode="out-in">
         <Image
           :src="userPhoto"
           :key="1"
           @on-load="photoLoaded = true"
           @on-error="photoLoaded = false"
-          v-if="userPhoto"
+          v-if="available && userPhoto"
         />
         <img src="@/assets/logo.png" :key="2" v-else />
       </transition>
@@ -36,9 +36,11 @@
               />
             </div>
             <div class="component-group">
-              <Button color="blue" :disabled="!input || loading" @click="getUserProfile">{{
+              <Button color="blue" :disabled="!input || loading" @click="getUserProfile">
+                {{
                 input && !loading ? '시작하기' : '...'
-              }}</Button>
+                }}
+              </Button>
             </div>
           </div>
         </transition>
@@ -56,6 +58,7 @@ import { delay } from 'rxjs/operators';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
+import GithubAPI from '@/apis/github';
 import M from '@/messages';
 import GitNotesDB from '@/database';
 import Button from '@/components/Button.vue';
@@ -75,6 +78,8 @@ export default defineComponent({
     const userName = computed(() => store.state.name);
     const userBio = computed(() => store.state.bio);
     const userPhoto = computed(() => store.state.photo);
+    GithubAPI.resetPersonalAccessToken();
+    store.commit(MutationTypes.RESET_USER);
 
     // Check store user data from IDB
     const subscription = from(GitNotesDB.getInstance().select('user'))
@@ -100,7 +105,7 @@ export default defineComponent({
       store
         .dispatch(ActionTypes.GET_PROFILE, input.value)
         .then(() => (available.value = true)) // Success
-        .catch(err => {
+        .catch((err) => {
           const status = err.response.status;
           if (status === 403) {
             showNotification(M.LIMIT_EXECEEDED);
