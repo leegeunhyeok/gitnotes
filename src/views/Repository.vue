@@ -1,33 +1,61 @@
 <template>
   <div class="repository">
-    <h3>{{ createNewRepository ? '🎉 새로운 저장소로 시작하기' : '⭐️ 기존 저장소 사용하기' }}</h3>
-    <div class="component-group">
-      <p>노트를 저장할 저장소를 선택합니다</p>
-    </div>
-    <div class="repository__form">
-      <div class="component-group">
-        <input type="text" placeholder="Repository" spellcheck="false" v-model="repositoryName" />
+    <transition name="fade" mode="out-in">
+      <div v-if="!done">
+        <h3>{{ createNewRepository ? '📦 새로운 저장소로 시작하기' : '⭐️ 기존 저장소 사용하기' }}</h3>
+        <div class="component-group">
+          <p>노트를 저장할 저장소를 선택합니다</p>
+        </div>
+        <div class="repository__form">
+          <div class="component-group">
+            <input type="text" placeholder="Repository" spellcheck="false" v-model="repositoryName" />
+          </div>
+          <div class="component-group">
+            <Button
+              color="blue"
+              :disabled="!repositoryName"
+              @click="doRepositoryTask"
+            >{{ nextText }}</Button>
+          </div>
+          <div class="component-group">
+            <a @click="createNewRepository = !createNewRepository">{{ toggleText }}</a>
+          </div>
+        </div>
       </div>
-      <div class="component-group">
-        <Button color="blue" :disabled="!repositoryName" @click="doRepositoryTask">{{ nextText }}</Button>
+      <div v-else>
+        <div class="repository__done">🎉</div>
+        <h3>좋아요!</h3>
+        <p>기본 정보를 준비하고 있습니다{{ dots }}</p>
       </div>
-      <div class="component-group">
-        <a @click="createNewRepository = !createNewRepository">{{ toggleText }}</a>
-      </div>
-    </div>
+    </transition>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeMount, ref, computed } from 'vue';
-import { useStore } from '@/store';
+import { defineComponent, onBeforeMount, onBeforeUnmount, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
+import { useStore } from '@/store';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
 import GitNotesDB from '@/database';
 import M, { messageFrom } from '@/messages';
 import Button from '@/components/Button.vue';
+
+const dotInterval = (tick = 500) => {
+  const dotString = '...';
+  const dots = ref('');
+  let dotsIndex = dotString.length;
+
+  const id = window.setInterval(() => {
+    dots.value = '...'.slice(dotsIndex--);
+    if (dotsIndex < 0) dotsIndex = dotString.length;
+  }, tick);
+
+  onBeforeUnmount(() => clearInterval(id));
+
+  return dots;
+};
 
 export default defineComponent({
   name: 'Repository',
@@ -37,6 +65,8 @@ export default defineComponent({
     const router = useRouter();
     const createNewRepository = ref(true);
     const repositoryName = ref('');
+    const done = ref(false);
+    const dots = dotInterval();
     const nextText = computed(() => (createNewRepository.value ? '새로 만들기' : '저장소 찾기'));
     const toggleText = computed(() =>
       createNewRepository.value ? '기존 저장소로 시작할래요' : '새 저장소에 시작할래요',
@@ -53,6 +83,7 @@ export default defineComponent({
         })
         .then(() => {
           // TODO: create base file, routing, etc..
+          done.value = true;
         });
     };
 
@@ -98,6 +129,8 @@ export default defineComponent({
     return {
       createNewRepository,
       repositoryName,
+      done,
+      dots,
       nextText,
       toggleText,
       doRepositoryTask,
@@ -121,18 +154,20 @@ $width-limit: 350px;
   height: 100%;
   padding-top: 2rem;
 
-  &__form {
+  & > div {
     width: 80%;
     max-width: $width-limit;
-    height: 10.8rem;
-
     @include size(md) {
       width: 75%;
     }
-
     @include size(lg) {
       width: 40%;
     }
+  }
+
+  &__form {
+    width: 100%;
+    height: 10.8rem;
 
     h3 {
       height: 30px;
@@ -152,6 +187,27 @@ $width-limit: 350px;
       font-size: 0.8rem;
       color: #999;
     }
+  }
+
+  &__done {
+    animation-name: done;
+    animation-delay: 0s;
+    animation-duration: 1s;
+    animation-fill-mode: forwards;
+  }
+}
+
+@keyframes done {
+  0% {
+    font-size: 0;
+  }
+
+  50% {
+    font-size: 8rem;
+  }
+
+  100% {
+    font-size: 6rem;
   }
 }
 </style>
