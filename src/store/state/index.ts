@@ -2,14 +2,18 @@ export interface State {
   loading: boolean;
   name: string;
   bio: string;
-  token: string;
   photo: string;
+  token: string;
+  repository: string;
+  branch: string;
 }
 
 export const state: State = {
   loading: false,
   name: '',
   bio: '',
-  token: '',
   photo: '',
+  token: '',
+  repository: '',
+  branch: '',
 };

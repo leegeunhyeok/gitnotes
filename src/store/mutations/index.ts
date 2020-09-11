@@ -8,6 +8,7 @@ export enum MutationTypes {
   SET_PHOTO = 'SET_PHOTO',
   SET_TOKEN = 'SET_TOKEN',
   RESET_USER = 'RESET_USER',
+  SET_REPOSITORY = 'SET_REPOSITORY',
 }
 
 export type Mutations<S = State> = {
@@ -17,6 +18,7 @@ export type Mutations<S = State> = {
   [MutationTypes.SET_PHOTO](state: S, payload: string): void;
   [MutationTypes.SET_TOKEN](state: S, payload: string): void;
   [MutationTypes.RESET_USER](state: S): void;
+  [MutationTypes.SET_REPOSITORY](state: S, payload: { name: string; branch: string }): void;
 };
 
 export const mutations: MutationTree<State> & Mutations = {
@@ -40,5 +42,9 @@ export const mutations: MutationTree<State> & Mutations = {
     state.bio = '';
     state.photo = '';
     state.token = '';
+  },
+  [MutationTypes.SET_REPOSITORY](state, { name, branch }) {
+    state.repository = name;
+    state.branch = branch;
   },
 };

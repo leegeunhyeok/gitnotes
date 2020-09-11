@@ -117,6 +117,14 @@ class GithubAPI {
   }
 
   /**
+   * Get target repository
+   * - API Docs: https://docs.github.com/en/rest/reference/repos#get-a-repository
+   */
+  async getRepository(username: string, repository: string): Promise<Repository> {
+    return (await this._api.get<Repository>(`/repos/${username}/${repository}`)).data;
+  }
+
+  /**
    * Get target user information
    * - API Docs: https://docs.github.com/en/rest/reference/users#get-a-user
    *

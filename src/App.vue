@@ -16,7 +16,7 @@
 
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
-import { useStore } from 'vuex';
+import store, { provideStore } from '@/store';
 import GitNotesDB from '@/database';
 import Controller from '@/services/notification';
 import Notification from '@/components/Notification.vue';
@@ -26,14 +26,14 @@ export default defineComponent({
   name: 'App',
   components: { Notification, Loading },
   setup() {
-    const store = useStore();
+    provideStore();
     const isLoading = computed(() => store.state.loading);
     // Notification state
     const message = ref('');
     const show = ref(false);
 
     // Notification event bind + state management
-    Controller.getInstance().register(event => {
+    Controller.getInstance().register((event) => {
       event.message !== null && (message.value = event.message);
       show.value = event.show;
     });

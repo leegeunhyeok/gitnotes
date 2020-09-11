@@ -23,15 +23,15 @@
             <p>
               <a
                 href="https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token"
-                >여기</a
-              >를 참고하여 발급받을 수 있으며,<br />
-              위 사진과 같은 저장소 권한이 필요합니다 😉
+              >여기</a>를 참고하여 발급받을 수 있으며,
+              <br />위 사진과 같은 저장소 권한이 필요합니다 😉
             </p>
           </div>
           <div class="component-group">
             <p>
-              토큰 값은 사용자 브라우저에 저장되며,<br />
-              외부 서버 혹은 제 3자에게 <u style="color: tomato">일절 공개하지 않습니다</u> 🔐
+              토큰 값은 사용자 브라우저에 저장되며,
+              <br />외부 서버 혹은 제 3자에게
+              <u style="color: tomato">일절 공개하지 않습니다</u> 🔐
             </p>
           </div>
         </template>
@@ -73,7 +73,7 @@ export default defineComponent({
           store.commit(MutationTypes.SET_TOKEN, token.value);
           router.push({ name: 'Repository' });
         })
-        .catch(err => {
+        .catch((err) => {
           // Error! -> Notification
           const status = err.response.status;
           if (status === 401) {
