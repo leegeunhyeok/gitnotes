@@ -73,7 +73,7 @@ export default defineComponent({
     );
 
     // Need user name & token
-    onBeforeMount(() => !(store.state.name && store.state.token) && router.push({ name: 'Main' }));
+    onBeforeMount(() => !store.getters.USER_STATE_AVAILABLE && router.push({ name: 'Main' }));
 
     const saveRepositoryAndContinue = () => {
       return GitNotesDB.getInstance()
@@ -90,9 +90,7 @@ export default defineComponent({
     const createRepository = () => {
       return store
         .dispatch(ActionTypes.CREATE_REPOSITORY, repositoryName.value)
-        .then(() => {
-          return saveRepositoryAndContinue();
-        })
+        .then(() => saveRepositoryAndContinue())
         .catch((err) => {
           const status = err?.response?.status;
           if (status === 422) {

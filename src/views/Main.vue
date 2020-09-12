@@ -51,7 +51,7 @@
 
 <script lang="ts">
 import { defineComponent, onBeforeUnmount, ref, computed } from 'vue';
-import { useStore } from 'vuex';
+import { useStore } from '@/store';
 import { useRouter } from 'vue-router';
 import { from } from 'rxjs';
 import { delay } from 'rxjs/operators';
@@ -61,6 +61,7 @@ import { showNotification } from '@/services/notification';
 import GithubAPI from '@/apis/github';
 import M, { messageFrom } from '@/messages';
 import GitNotesDB from '@/database';
+import { UserObjectStore, RepositoryObjectStore } from '@/database/types';
 import Button from '@/components/Button.vue';
 import Image from '@/components/Image.vue';
 
@@ -78,24 +79,45 @@ export default defineComponent({
     const userName = computed(() => store.state.name);
     const userBio = computed(() => store.state.bio);
     const userPhoto = computed(() => store.state.photo);
+    const db = GitNotesDB.getInstance();
     GithubAPI.resetPersonalAccessToken();
-    store.commit(MutationTypes.RESET_USER);
+    store.commit(MutationTypes.RESET_USER, undefined);
 
     // Check store user data from IDB
-    const subscription = from(GitNotesDB.getInstance().select('user'))
+    const subscription = from(
+      Promise.all([
+        db.select<UserObjectStore>('user').then((users) => users[0]),
+        db.select<RepositoryObjectStore>('repository').then((repositories) => repositories[0]),
+      ]),
+    )
       .pipe(delay(1500)) // 1.5 Sec delay
       .subscribe({
-        next(users) {
-          doRegistration.value = !users.length;
+        next([user, repository]) {
+          // If has stored user data -> No ragistration (Continue to Home)
+          // Else -> Do ragistration
+          const storedUser = user;
+          const storedRepository = repository;
+          const needRegistration = !(storedUser && repository);
+          doRegistration.value = needRegistration;
+
+          if (needRegistration) {
+            return;
+          } else {
+            GithubAPI.setPersonalAccessToken(storedUser.token);
+            store.commit(MutationTypes.SET_NAME, storedUser.name);
+            store.commit(MutationTypes.SET_BIO, storedUser.bio);
+            store.commit(MutationTypes.SET_PHOTO, storedUser.photo);
+            store.commit(MutationTypes.SET_TOKEN, storedUser.token);
+            store.commit(MutationTypes.SET_REPOSITORY, {
+              name: storedRepository.name,
+              branch: storedRepository.branch,
+            });
+            router.push({ name: 'Home' });
+          }
         },
         error(e) {
-          doRegistration.value = true;
           console.error(e);
-        },
-        complete() {
-          // If has stored user data -> No ragistration
-          // Else -> Do ragistration
-          !doRegistration.value && router.push({ name: 'Home' });
+          doRegistration.value = true;
         },
       });
 
@@ -124,7 +146,7 @@ export default defineComponent({
     // Reset user state (vuex)
     const resetUserProfile = () => {
       available.value = false;
-      store.commit(MutationTypes.RESET_USER);
+      store.commit(MutationTypes.RESET_USER, undefined);
     };
 
     const nextToRegistToken = () => router.push({ name: 'Token' });
