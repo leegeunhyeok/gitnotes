@@ -234,7 +234,7 @@ class GithubAPI {
    *
    * @param config Repository path config
    */
-  async deleteRepositoryContent(config: RepositoryPathWithFile & Commit & { sha: string }) {
+  async deleteRepositoryContent(config: RepositoryPath & Commit & { sha: string }) {
     if (!this._token) {
       throw new GithubError('Github Personal Access Token not provided');
     }
@@ -242,7 +242,6 @@ class GithubAPI {
     const { user, repository, path } = config;
     const res = await this._api.delete<null>(`/repos/${user}/${repository}/contents/${path}`, {
       message: config.message,
-      content: config.content,
       sha: config.sha,
       ...(config.branch ? { branch: config.branch } : null),
     });
