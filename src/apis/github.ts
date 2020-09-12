@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { Users, Repository, RepositoryFileContent, RepositoryUpdate } from '@/interfaces/github';
+import { User, Repository, RepositoryFileContent, RepositoryUpdate } from '@/interfaces/github';
 
 const BASE_URL = 'https://api.github.com';
 
@@ -121,11 +121,14 @@ class GithubAPI {
    * Get target user information
    * - API Docs: https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
    */
-  async me(): Promise<Users> {
-    if (!this._token) {
-      throw new GithubError('Github Personal Access Token not provided');
-    }
-    return (await this._api.get<Users>(`/users`)).data;
+  async me(token: string): Promise<User> {
+    return (
+      await this._api.get<User>(`/users`, {
+        headers: {
+          Authorization: `token ${token}`,
+        },
+      })
+    ).data;
   }
 
   /**
@@ -142,8 +145,8 @@ class GithubAPI {
    *
    * @param username Target username
    */
-  async getUser(username: string): Promise<Users> {
-    return (await this._api.get<Users>(`/users/${username}`)).data;
+  async getUser(username: string): Promise<User> {
+    return (await this._api.get<User>(`/users/${username}`)).data;
   }
 
   /**

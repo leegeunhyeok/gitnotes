@@ -6,8 +6,8 @@ export type StringOrEmpty = string | null;
 export type NumberOrEmpty = number | null;
 export type BooleanOrEmpty = boolean | null;
 
-export interface Users {
-  login: StringOrEmpty;
+export interface User {
+  login: string;
   id: number;
   node_id: string;
   avatar_url: StringOrEmpty;
@@ -25,7 +25,7 @@ export interface Users {
   received_events_url: string;
   type: string;
   site_admin: BooleanOrEmpty;
-  name: string;
+  name: StringOrEmpty;
   company: StringOrEmpty;
   blog: StringOrEmpty;
   location: StringOrEmpty;
@@ -52,6 +52,7 @@ export interface Repository {
 export interface RepositoryFileContent {
   name: string;
   path: string;
+  content: string;
   sha: string;
   size: number;
   url: string;
