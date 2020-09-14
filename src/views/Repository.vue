@@ -76,16 +76,25 @@ export default defineComponent({
     // Need user name & token
     onBeforeMount(() => !store.getters.USER_STATE_AVAILABLE && router.push({ name: 'Main' }));
 
-    const saveRepositoryAndContinue = () => {
-      return GitNotesDB.getInstance()
-        .insert('repository', {
-          name: store.state.repository,
+    const registUserAndContinue = () => {
+      return core
+        .saveUser({
+          login: store.state.login,
+          name: store.state.name,
+          bio: store.state.bio,
+          photo: store.state.bio,
+          token: store.state.token,
+          repository: store.state.repository,
           branch: store.state.branch,
         })
         .then(() => {
           done.value = true;
-          return core.loadMeta().then(() => {
-            // TODO;
+          return Promise.all([
+            core.createMeta(store.state.login, store.state.repository, store.state.token),
+            new Promise((resolve) => setTimeout(resolve, 2000)),
+          ]).then(() => {
+            store.commit(MutationTypes.APP_INITIALIZAED, undefined);
+            router.push({ name: 'Home' });
           });
         });
     };
@@ -93,8 +102,9 @@ export default defineComponent({
     const createRepository = () => {
       return store
         .dispatch(ActionTypes.CREATE_REPOSITORY, repositoryName.value)
-        .then(() => saveRepositoryAndContinue())
+        .then(() => registUserAndContinue())
         .catch((err) => {
+          console.error(err);
           const status = err?.response?.status;
           if (status === 422) {
             showNotification(M.ALREADY_EXIST_REPO);
@@ -110,10 +120,9 @@ export default defineComponent({
           username: store.state.login,
           repositoryName: repositoryName.value,
         })
-        .then(() => {
-          return saveRepositoryAndContinue();
-        })
+        .then(() => registUserAndContinue())
         .catch((err) => {
+          console.error(err);
           const status = err?.response?.status;
           if (status === 404) {
             showNotification(M.REPO_NOT_FOIND);

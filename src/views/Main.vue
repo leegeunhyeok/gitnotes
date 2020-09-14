@@ -85,7 +85,8 @@ export default defineComponent({
       if (!hasStoredUser) throw new Error('No user found');
       await store.dispatch(ActionTypes.GIT_INIT, undefined);
       await store.dispatch(ActionTypes.LOAD_METADATA, undefined);
-      router.push({ name: 'Main' });
+      store.commit(MutationTypes.APP_INITIALIZAED, undefined);
+      router.push({ name: 'Home' });
     })().catch(() => {
       // Need registration
       setTimeout(() => {
@@ -100,6 +101,7 @@ export default defineComponent({
         .dispatch(ActionTypes.GET_PROFILE, input.value)
         .then(() => (available.value = true)) // Success
         .catch((err) => {
+          console.error(err);
           const status = err?.response?.status;
           if (status === 403) {
             showNotification(M.LIMIT_EXECEEDED);

@@ -1,10 +1,6 @@
 <template>
   <div class="home">
-    <h2>test</h2>
-    <div>
-      <button @click="increase">+</button>
-      <button @click="decrease">-</button>
-    </div>
+    <h2>{{ store.state.login }}</h2>
   </div>
 </template>
 
@@ -12,7 +8,6 @@
 import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/store';
-import core from '@/core';
 
 export default defineComponent({
   name: 'Home',
@@ -20,6 +15,8 @@ export default defineComponent({
     const store = useStore();
     const router = useRouter();
     store.state.init || router.push({ name: 'Main' });
+
+    return { store };
   },
 });
 </script>
