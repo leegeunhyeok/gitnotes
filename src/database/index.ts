@@ -1,3 +1,5 @@
+import { v4 as uuidv4 } from 'uuid';
+
 type ObjectStoreDataTypes = typeof Object | typeof String | typeof Number | typeof Date;
 
 interface ObjectStoreWhere {
@@ -51,9 +53,9 @@ export default class GitNotesDB {
   }
 
   private open() {
-    return new Promise((resolve: () => void, reject: (value: Event) => void) => {
+    return new Promise((resolve: (value: IDBDatabase) => void, reject: (value: Event) => void) => {
       if (this._db) {
-        resolve();
+        resolve(this._db);
         return;
       }
 
@@ -61,7 +63,7 @@ export default class GitNotesDB {
       request.onerror = reject;
       request.onsuccess = () => {
         this._db = request.result;
-        resolve();
+        resolve(request.result);
       };
       request.onupgradeneeded = () => {
         const db = request.result;
@@ -95,145 +97,123 @@ export default class GitNotesDB {
     this._version = version;
   }
 
-  select<T>(storeName: string, where?: ObjectStoreWhere, limit?: number) {
+  async select<T>(storeName: string, where?: ObjectStoreWhere, limit?: number) {
     if (where && !this.objectStoreColumnValidator(storeName, where)) {
       throw new Error(`${storeName} object store columns and where condition columns is mismatch`);
     }
 
-    return this.open().then(() => {
-      return new Promise((resolve: (value: T[]) => void, reject: (value: Event) => void) => {
-        if (!this._db) {
-          throw new Error('Database not opened');
-        }
+    let cursorPosition = 0;
+    const db = await this.open();
+    const transaction = db.transaction(storeName);
 
-        const transaction = this._db.transaction(storeName);
-        const cursorRequest = transaction.objectStore(storeName).openCursor();
-        const records: T[] = [];
-        let cursorPosition = 0;
-        cursorRequest.onsuccess = () => {
-          const cursor = cursorRequest.result;
-          if (cursor) {
-            const record = cursor.value as T;
-            if (typeof limit === 'number' && limit < cursorPosition++) {
-              resolve(records);
-              return;
-            }
-
-            if (!where) {
-              records.push(record);
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } else if (Object.keys(where).every(key => (record as any)[key] === where[key])) {
-              records.push(record);
-            }
-            cursor.continue();
-          } else {
+    return new Promise<T[]>((resolve, reject) => {
+      const cursorRequest = transaction.objectStore(storeName).openCursor();
+      const records: T[] = [];
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (cursor) {
+          const record = cursor.value as T;
+          if (typeof limit === 'number' && limit < cursorPosition++) {
             resolve(records);
+            return;
           }
-        };
 
-        cursorRequest.onerror = reject;
-      });
+          if (!where) {
+            records.push(record);
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          } else if (Object.keys(where).every(key => (record as any)[key] === where[key])) {
+            records.push(record);
+          }
+          cursor.continue();
+        } else {
+          resolve(records);
+        }
+      };
+      cursorRequest.onerror = reject;
     });
   }
 
-  insert<T>(storeName: string, value: T) {
+  async insert<T>(storeName: string, value: T) {
     if (!this.objectStoreColumnValidator(storeName, value)) {
       throw new Error(`${storeName} object store columns and value columns(or type) is mismatch`);
     }
 
-    return this.open().then(() => {
-      return new Promise((resolve: (value: Event) => void, reject: (value: Event) => void) => {
-        if (!this._db) {
-          throw new Error('Database not opened');
-        }
+    const db = await this.open();
+    return new Promise<Event>((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readwrite');
+      const objectStore = transaction.objectStore(storeName);
+      objectStore.add({ _id: uuidv4(), ...value });
 
-        const transaction = this._db.transaction(storeName, 'readwrite');
-        const objectStore = transaction.objectStore(storeName);
-        objectStore.add(value);
-
-        transaction.onabort = reject;
-        transaction.onerror = reject;
-        transaction.oncomplete = resolve;
-      });
+      transaction.onabort = reject;
+      transaction.onerror = reject;
+      transaction.oncomplete = resolve;
     });
   }
 
-  update<T>(storeName: string, value: T, where?: ObjectStoreWhere) {
+  async update<T>(storeName: string, value: T, where?: ObjectStoreWhere) {
     if (!this.objectStoreColumnValidator(storeName, value)) {
       throw new Error(`${storeName} object store columns and value columns is mismatch`);
     } else if (where && !this.objectStoreColumnValidator(storeName, where)) {
       throw new Error(`${storeName} object store columns and where condition columns is mismatch`);
     }
 
-    return this.open().then(() => {
-      return new Promise((resolve: (value: number) => void, reject: (value: Event) => void) => {
-        if (!this._db) {
-          throw new Error('Database not opened');
+    const db = await this.open();
+
+    return new Promise<number>((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readwrite');
+      const cursorRequest = transaction.objectStore(storeName).openCursor();
+      let affectedRows = 0;
+
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+        if (!cursor) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        if (where && Object.keys(where).every(key => (cursor.value as any)[key] === where[key])) {
+          cursor.update(value);
+          ++affectedRows;
         }
+      };
 
-        const transaction = this._db.transaction(storeName, 'readwrite');
-        const cursorRequest = transaction.objectStore(storeName).openCursor();
-        let affectedRows = 0;
-
-        cursorRequest.onsuccess = () => {
-          const cursor = cursorRequest.result;
-
-          if (!cursor) {
-            return;
-          }
-
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          if (where && Object.keys(where).every(key => (cursor.value as any)[key] === where[key])) {
-            cursor.update(value);
-            ++affectedRows;
-          }
-        };
-
-        transaction.onabort = reject;
-        transaction.onerror = reject;
-        transaction.oncomplete = () => {
-          resolve(affectedRows);
-        };
-      });
+      transaction.onabort = reject;
+      transaction.onerror = reject;
+      transaction.oncomplete = () => resolve(affectedRows);
     });
   }
 
-  delete<T>(storeName: string, where?: ObjectStoreWhere) {
+  async delete<T>(storeName: string, where?: ObjectStoreWhere) {
     if (where && !this.objectStoreColumnValidator(storeName, where)) {
       throw new Error(`${storeName} object store columns and where condition columns is mismatch`);
     }
 
-    return this.open().then(() => {
-      return new Promise((resolve: (value: Event) => void, reject: (value: Event) => void) => {
-        if (!this._db) {
-          throw new Error('Database not opened');
+    const db = await this.open();
+    return new Promise<number>((resolve, reject) => {
+      const transaction = db.transaction(storeName, 'readwrite');
+      const cursorRequest = transaction.objectStore(storeName).openCursor();
+      let deletedRecords = 0;
+
+      cursorRequest.onsuccess = () => {
+        const cursor = cursorRequest.result;
+
+        if (!cursor) {
+          return;
         }
 
-        const transaction = this._db.transaction(storeName, 'readwrite');
-        const cursorRequest = transaction.objectStore(storeName).openCursor();
+        if (!where) {
+          cursor.delete();
+          ++deletedRecords;
+        } else if (
+          where &&
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          Object.keys(where).every(key => (cursor.value as any)[key] === where[key])
+        ) {
+          cursor.delete();
+          ++deletedRecords;
+        }
+      };
 
-        cursorRequest.onsuccess = () => {
-          const cursor = cursorRequest.result;
-
-          if (!cursor) {
-            return;
-          }
-
-          if (!where) {
-            cursor.delete();
-          } else if (
-            where &&
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            Object.keys(where).every(key => (cursor.value as any)[key] === where[key])
-          ) {
-            cursor.delete();
-          }
-        };
-
-        transaction.onabort = reject;
-        transaction.onerror = reject;
-        transaction.oncomplete = resolve;
-      });
+      transaction.onabort = reject;
+      transaction.onerror = reject;
+      transaction.oncomplete = () => resolve(deletedRecords);
     });
   }
 }

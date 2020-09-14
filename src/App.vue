@@ -17,55 +17,36 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import store, { provideStore } from '@/store';
-import GitNotesDB from '@/database';
+import { ActionTypes } from '@/store/actions';
 import Controller from '@/services/notification';
 import Notification from '@/components/Notification.vue';
 import Loading from '@/components/Loading.vue';
+
+const useNotification = () => {
+  const show = ref(false);
+  const message = ref('');
+
+  // Notification event bind + state management
+  Controller.getInstance().register((event) => {
+    event.message !== null && (message.value = event.message);
+    show.value = event.show;
+  });
+
+  return { show, message };
+};
 
 export default defineComponent({
   name: 'App',
   components: { Notification, Loading },
   setup() {
     provideStore();
+    const { show, message } = useNotification();
     const isLoading = computed(() => store.state.loading);
-    // Notification state
-    const message = ref('');
-    const show = ref(false);
 
-    // Notification event bind + state management
-    Controller.getInstance().register((event) => {
-      event.message !== null && (message.value = event.message);
-      show.value = event.show;
-    });
+    // Application initialization
+    store.dispatch(ActionTypes.PREPARE_DATABASE);
 
-    // Create basic IDB object stores.
-    GitNotesDB.getInstance()
-      .store('user', {
-        name: String,
-        bio: String,
-        photo: String,
-        token: String,
-      })
-      .store('repository', {
-        name: String,
-        branch: String,
-      })
-      .store('tag', {
-        id: String,
-        name: String,
-        color: String,
-        createdAt: Date,
-      })
-      .store('note', {
-        id: String,
-        title: String,
-        content: String,
-        createdAt: Date,
-        updatedAt: Date,
-      })
-      .version(1);
-
-    return { message, show, isLoading };
+    return { show, message, isLoading };
   },
 });
 </script>

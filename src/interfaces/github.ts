@@ -41,6 +41,28 @@ export interface User {
   updated_at: StringOrEmpty;
 }
 
+export interface Commit {
+  sha: string;
+  node_id: string;
+  url: string;
+  html_url: string;
+  author: {
+    name: string;
+    email: string;
+    date: string;
+  };
+  committer: {
+    name: string;
+    email: string;
+    date: string;
+  };
+  tree: {
+    sha: string;
+    url: string;
+  };
+  message: string;
+}
+
 export interface Repository {
   name: string;
   full_name: string;
@@ -60,8 +82,36 @@ export interface RepositoryFileContent {
   git_url: string;
   download_url: string;
   type: string;
+  commit: Commit;
 }
 
 export interface RepositoryUpdate {
   content: RepositoryFileContent;
+}
+
+export interface Ref {
+  path: string;
+  mode: string;
+  type: string;
+  size: number;
+  sha?: string;
+  url: string;
+}
+
+export interface GitRef {
+  ref: string;
+  node_id: string;
+  url: string;
+  object: {
+    type: string;
+    sha: string;
+    url: string;
+  };
+}
+
+export interface GitTree {
+  sha: string;
+  url: string;
+  tree: Ref[];
+  truncated: boolean;
 }

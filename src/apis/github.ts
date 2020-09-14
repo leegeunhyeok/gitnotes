@@ -1,5 +1,13 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { User, Repository, RepositoryFileContent, RepositoryUpdate } from '@/interfaces/github';
+import {
+  User,
+  Repository,
+  RepositoryFileContent,
+  RepositoryUpdate,
+  GitRef,
+  GitTree,
+  Ref,
+} from '@/interfaces/github';
 
 const BASE_URL = 'https://api.github.com';
 
@@ -169,20 +177,73 @@ class GithubAPI {
   }
 
   /**
+   * - API Docs: https://docs.github.com/en/rest/reference/git#get-a-reference
+   * @param username
+   * @param repository
+   * @param lastCommit
+   */
+  async getRef(username: string, repository: string, branch: string) {
+    const { data } = await this._api.get<GitRef>(
+      `/repos/${username}/${repository}/git/refs/heads/${branch}`,
+    );
+    return data.object.sha;
+  }
+
+  /**
+   * - API Docs: https://docs.github.com/en/rest/reference/git#get-a-tree
+   * @param username Username
+   * @param repository Repository name
+   * @param lastCommit Latest commit sha hash
+   */
+  async getTree(username: string, repository: string, lastCommit: string) {
+    const { data } = await this._api.get<GitTree>(
+      `/repos/${username}/${repository}/git/trees/heads/${lastCommit}?recursive=true`,
+    );
+    return { sha: data.sha, tree: data.tree };
+  }
+
+  /**
+   * - API Docs: https://docs.github.com/en/rest/reference/git#get-a-tree
+   * @param username Username
+   * @param repository Repository name
+   * @param tree Git reference tree
+   */
+  postTree(username: string, repository: string, tree: Ref[]) {
+    return this._api.get<null>(`/repos/${username}/${repository}/git/trees`, { tree });
+  }
+
+  /**
+   * API Docs: https://docs.github.com/en/rest/reference/git#create-a-commit
+   * @param username Username
+   * @param repository Repository name
+   * @param parent Parent commit sha hash
+   * @param tree Git reference tree
+   * @param message Commit message
+   */
+  async commit(username: string, repository: string, parent: string, tree: Ref[], message: string) {
+    if (!this._token) {
+      throw new GithubError('Github Personal Access Token not provided');
+    }
+
+    return (
+      await this._api.post<{ sha: string }>(`/repos/${username}/${repository}/git/commits`, {
+        message,
+        parents: [parent],
+        tree,
+      })
+    ).data.sha;
+  }
+
+  /**
    * Get repository file content
    * - API Docs: https://docs.github.com/en/rest/reference/repos#get-repository-content
    *
    * @param config Repository path config
    */
   async getRepositoryContent(config: RepositoryPath) {
-    const res = await this._api.get<RepositoryFileContent | RepositoryFileContent[]>(
+    return await this._api.get<RepositoryFileContent>(
       `/repos/${config.user}/${config.repository}/contents/${config.path}`,
     );
-
-    return {
-      data: res.data,
-      isDirectory: Array.isArray(res.data),
-    };
   }
 
   /**

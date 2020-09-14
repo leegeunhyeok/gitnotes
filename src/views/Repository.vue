@@ -41,6 +41,7 @@ import { showNotification } from '@/services/notification';
 import GitNotesDB from '@/database';
 import M, { messageFrom } from '@/messages';
 import Button from '@/components/Button.vue';
+import core from '@/core';
 
 const dotInterval = (tick = 500) => {
   const dotString = '...';
@@ -82,8 +83,10 @@ export default defineComponent({
           branch: store.state.branch,
         })
         .then(() => {
-          // TODO: create base file, routing, etc..
           done.value = true;
+          return core.loadMeta().then(() => {
+            // TODO;
+          });
         });
     };
 
@@ -103,7 +106,10 @@ export default defineComponent({
 
     const findRepository = () => {
       return store
-        .dispatch(ActionTypes.USE_EXIST_REPOSITORY, repositoryName.value)
+        .dispatch(ActionTypes.GET_REPOSITORY, {
+          username: store.state.login,
+          repositoryName: repositoryName.value,
+        })
         .then(() => {
           return saveRepositoryAndContinue();
         })

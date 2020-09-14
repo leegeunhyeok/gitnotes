@@ -43,17 +43,18 @@
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import { defineComponent, onBeforeMount, ref } from 'vue';
 import { useStore } from 'vuex';
 import { useRouter } from 'vue-router';
+import { User } from '@/core';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
+import M, { messageFrom } from '@/messages';
 import GithubAPI from '@/apis/github';
 import GitNotesDB from '@/database';
-import M, { messageFrom } from '@/messages';
-import Button from '@/components/Button';
-import Modal from '@/components/Modal';
+import Button from '@/components/Button.vue';
+import Modal from '@/components/Modal.vue';
 
 export default defineComponent({
   name: 'Regist',
@@ -70,16 +71,18 @@ export default defineComponent({
     // Github Personal Access Token validation
     const tokenValidation = () => {
       store.commit(MutationTypes.SET_LOADING, true);
-      GithubAPI.setPersonalAccessToken(token.value);
-      GithubAPI.me()
+      GithubAPI.me(token.value)
         .then(() => {
           // Validated! -> Store user data -> Go to next step
           store.commit(MutationTypes.SET_TOKEN, token.value);
           return GitNotesDB.getInstance()
-            .insert('user', {
+            .insert<User>('user', {
+              login: store.state.login,
               name: store.state.name,
               bio: store.state.bio,
               photo: store.state.photo,
+              repository: store.state.repository,
+              branch: store.state.branch,
               token: store.state.token,
             })
             .then(() => {
@@ -87,6 +90,7 @@ export default defineComponent({
             });
         })
         .catch((err) => {
+          console.log(err);
           // Error! -> Notification
           const status = err?.response?.status;
           if (status === 401) {

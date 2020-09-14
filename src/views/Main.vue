@@ -36,11 +36,11 @@
               />
             </div>
             <div class="component-group">
-              <Button color="blue" :disabled="!input || loading" @click="getUserProfile">
-                {{
-                input && !loading ? '시작하기' : '...'
-                }}
-              </Button>
+              <Button
+                color="blue"
+                :disabled="!input || loading"
+                @click="getUserProfile"
+              >{{ input && !loading ? '시작하기' : '...' }}</Button>
             </div>
           </div>
         </transition>
@@ -50,18 +50,15 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeUnmount, ref, computed } from 'vue';
+import { defineComponent, ref, computed } from 'vue';
 import { useStore } from '@/store';
 import { useRouter } from 'vue-router';
-import { from } from 'rxjs';
-import { delay } from 'rxjs/operators';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
+import core from '@/core';
 import GithubAPI from '@/apis/github';
 import M, { messageFrom } from '@/messages';
-import GitNotesDB from '@/database';
-import { UserObjectStore, RepositoryObjectStore } from '@/database/types';
 import Button from '@/components/Button.vue';
 import Image from '@/components/Image.vue';
 
@@ -79,47 +76,22 @@ export default defineComponent({
     const userName = computed(() => store.state.name);
     const userBio = computed(() => store.state.bio);
     const userPhoto = computed(() => store.state.photo);
-    const db = GitNotesDB.getInstance();
     GithubAPI.resetPersonalAccessToken();
-    store.commit(MutationTypes.RESET_USER, undefined);
 
-    // Check store user data from IDB
-    const subscription = from(
-      Promise.all([
-        db.select<UserObjectStore>('user').then((users) => users[0]),
-        db.select<RepositoryObjectStore>('repository').then((repositories) => repositories[0]),
-      ]),
-    )
-      .pipe(delay(1500)) // 1.5 Sec delay
-      .subscribe({
-        next([user, repository]) {
-          // If has stored user data -> No ragistration (Continue to Home)
-          // Else -> Do ragistration
-          const storedUser = user;
-          const storedRepository = repository;
-          const needRegistration = !(storedUser && repository);
-          doRegistration.value = needRegistration;
-
-          if (needRegistration) {
-            return;
-          } else {
-            GithubAPI.setPersonalAccessToken(storedUser.token);
-            store.commit(MutationTypes.SET_NAME, storedUser.name);
-            store.commit(MutationTypes.SET_BIO, storedUser.bio);
-            store.commit(MutationTypes.SET_PHOTO, storedUser.photo);
-            store.commit(MutationTypes.SET_TOKEN, storedUser.token);
-            store.commit(MutationTypes.SET_REPOSITORY, {
-              name: storedRepository.name,
-              branch: storedRepository.branch,
-            });
-            router.push({ name: 'Home' });
-          }
-        },
-        error(e) {
-          console.error(e);
-          doRegistration.value = true;
-        },
-      });
+    // Init (Load user data from IDB -> Fetch git tree -> Load metadata)
+    (async function init() {
+      const hasStoredUser = await store.dispatch(ActionTypes.LOAD_USER, undefined);
+      doRegistration.value = !hasStoredUser;
+      if (!hasStoredUser) throw new Error('No user found');
+      await store.dispatch(ActionTypes.GIT_INIT, undefined);
+      await store.dispatch(ActionTypes.LOAD_METADATA, undefined);
+      router.push({ name: 'Main' });
+    })().catch(() => {
+      // Need registration
+      setTimeout(() => {
+        doRegistration.value = true;
+      }, 1000);
+    });
 
     // Get user profile data from Github API
     const getUserProfile = () => {
@@ -150,8 +122,6 @@ export default defineComponent({
     };
 
     const nextToRegistToken = () => router.push({ name: 'Token' });
-
-    onBeforeUnmount(() => subscription.unsubscribe());
 
     return {
       doRegistration,

@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h2>{{ name }}</h2>
+    <h2>test</h2>
     <div>
       <button @click="increase">+</button>
       <button @click="decrease">-</button>
@@ -10,11 +10,16 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
+import { useRouter } from 'vue-router';
+import { useStore } from '@/store';
+import core from '@/core';
 
 export default defineComponent({
   name: 'Home',
   setup() {
-    // TODO
+    const store = useStore();
+    const router = useRouter();
+    store.state.init || router.push({ name: 'Main' });
   },
 });
 </script>

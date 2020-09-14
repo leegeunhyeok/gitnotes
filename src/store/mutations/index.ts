@@ -1,8 +1,15 @@
 import { MutationTree } from 'vuex';
 import { State } from '@/store/state';
+import { Tag, Note } from '@/core';
 
 export enum MutationTypes {
+  GIT_INITIALIZAED = 'GIT_INITIALIZAED',
+  APP_INITIALIZAED = 'APP_INITIALIZAED',
+  SET_DB_LOADED = 'SET_DB_LOADED',
   SET_LOADING = 'SET_LOADING',
+  SET_NOTES = 'SET_NOTES',
+  SET_TAGS = 'SET_TAGS',
+  SET_LOGIN = 'SET_LOGIN',
   SET_NAME = 'SET_NAME',
   SET_BIO = 'SET_BIO',
   SET_PHOTO = 'SET_PHOTO',
@@ -12,7 +19,13 @@ export enum MutationTypes {
 }
 
 export type Mutations<S = State> = {
+  [MutationTypes.GIT_INITIALIZAED](state: S): void;
+  [MutationTypes.APP_INITIALIZAED](state: S): void;
+  [MutationTypes.SET_DB_LOADED](state: S, payload: boolean): void;
   [MutationTypes.SET_LOADING](state: S, payload: boolean): void;
+  [MutationTypes.SET_TAGS](state: S, payload: Tag[]): void;
+  [MutationTypes.SET_NOTES](state: S, payload: Note[]): void;
+  [MutationTypes.SET_LOGIN](state: S, payload: string): void;
   [MutationTypes.SET_NAME](state: S, payload: string): void;
   [MutationTypes.SET_BIO](state: S, payload: string): void;
   [MutationTypes.SET_PHOTO](state: S, payload: string): void;
@@ -22,8 +35,26 @@ export type Mutations<S = State> = {
 };
 
 export const mutations: MutationTree<State> & Mutations = {
-  [MutationTypes.SET_LOADING](state, payload) {
-    state.loading = payload;
+  [MutationTypes.GIT_INITIALIZAED](state) {
+    state.gitInit = true;
+  },
+  [MutationTypes.APP_INITIALIZAED](state) {
+    state.init = true;
+  },
+  [MutationTypes.SET_DB_LOADED](state, prepared) {
+    state.databasePrepared = prepared;
+  },
+  [MutationTypes.SET_LOADING](state, loading) {
+    state.loading = loading;
+  },
+  [MutationTypes.SET_TAGS](state, tags) {
+    state.tags = tags;
+  },
+  [MutationTypes.SET_NOTES](state, notes) {
+    state.notes = notes;
+  },
+  [MutationTypes.SET_LOGIN](state, login: string) {
+    state.login = login;
   },
   [MutationTypes.SET_NAME](state, name: string) {
     state.name = name;
@@ -38,9 +69,12 @@ export const mutations: MutationTree<State> & Mutations = {
     state.token = token;
   },
   [MutationTypes.RESET_USER](state) {
+    state.login = '';
     state.name = '';
     state.bio = '';
     state.photo = '';
+    state.repository = '';
+    state.branch = '';
     state.token = '';
   },
   [MutationTypes.SET_REPOSITORY](state, { name, branch }) {

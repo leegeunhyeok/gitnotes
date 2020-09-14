@@ -37,4 +37,5 @@ export const useStore = () => {
   if (!store) throw new Error('Store not provided');
   return store;
 };
+
 export default store;
