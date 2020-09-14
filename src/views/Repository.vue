@@ -38,7 +38,6 @@ import { useStore } from '@/store';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
-import GitNotesDB from '@/database';
 import M, { messageFrom } from '@/messages';
 import Button from '@/components/Button.vue';
 import core from '@/core';
@@ -90,7 +89,8 @@ export default defineComponent({
         .then(() => {
           done.value = true;
           return Promise.all([
-            core.createMeta(store.state.login, store.state.repository, store.state.token),
+            createNewRepository.value &&
+              core.createMeta(store.state.login, store.state.repository, store.state.token),
             new Promise((resolve) => setTimeout(resolve, 2000)),
           ]).then(() => {
             store.commit(MutationTypes.APP_INITIALIZAED, undefined);
