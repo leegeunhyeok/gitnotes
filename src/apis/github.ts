@@ -193,11 +193,11 @@ class GithubAPI {
    * - API Docs: https://docs.github.com/en/rest/reference/git#get-a-tree
    * @param username Username
    * @param repository Repository name
-   * @param lastCommit Latest commit sha hash
+   * @param branch Target branch
    */
-  async getTree(username: string, repository: string, lastCommit: string) {
+  async getTree(username: string, repository: string, branch: string) {
     const { data } = await this._api.get<GitTree>(
-      `/repos/${username}/${repository}/git/trees/heads/${lastCommit}?recursive=true`,
+      `/repos/${username}/${repository}/git/trees/heads/${branch}?recursive=true`,
     );
     return { sha: data.sha, tree: data.tree };
   }
