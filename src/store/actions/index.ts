@@ -2,7 +2,6 @@ import core, { GitNotesMeta, Note, GitNotesCore } from '@/core';
 import GithubAPI from '@/apis/github';
 import { ActionTree, ActionContext } from 'vuex';
 import { State } from '@/store/state';
-import { GetterTypes } from '@/store/getters';
 import { Mutations, MutationTypes } from '@/store/mutations';
 import { Repository, RepositoryFileContent, User } from '@/interfaces/github';
 
@@ -46,7 +45,7 @@ export interface Actions {
   [ActionTypes.SAVE_METADATA](
     context: AugmentedActionContext,
     payload: GitNotesMeta,
-  ): Promise<void>;
+  ): Promise<GitNotesMeta>;
   [ActionTypes.GET_NOTE_CONTENT](
     context: AugmentedActionContext,
     payload: { name: string; tag?: string },
