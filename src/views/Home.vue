@@ -1,6 +1,6 @@
 <template>
   <div class="home">
-    <h2>{{ store.state.login }}</h2>
+    <Profile :username="store.state.login" :photo="store.state.photo" />
   </div>
 </template>
 
@@ -8,9 +8,11 @@
 import { defineComponent } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/store';
+import Profile from '@/components/Profile.vue';
 
 export default defineComponent({
   name: 'Home',
+  components: { Profile },
   setup() {
     const store = useStore();
     const router = useRouter();
@@ -23,10 +25,8 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 .home {
-  img {
-    max-width: 400px;
-    border-radius: 50%;
-    overflow: hidden;
-  }
+  padding: 1rem;
+  max-width: 800px;
+  margin: auto;
 }
 </style>
