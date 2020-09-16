@@ -2,20 +2,25 @@
   <div class="repository">
     <transition name="fade" mode="out-in">
       <div v-if="!done">
-        <h3>{{ createNewRepository ? '📦 새로운 저장소로 시작하기' : '⭐️ 기존 저장소 사용하기' }}</h3>
+        <h3>
+          {{ createNewRepository ? '📦 새로운 저장소로 시작하기' : '⭐️ 기존 저장소 사용하기' }}
+        </h3>
         <div class="component-group">
           <p>노트를 저장할 저장소를 선택합니다</p>
         </div>
         <div class="repository__form">
           <div class="component-group">
-            <input type="text" placeholder="Repository" spellcheck="false" v-model="repositoryName" />
+            <input
+              type="text"
+              placeholder="Repository"
+              spellcheck="false"
+              v-model="repositoryName"
+            />
           </div>
           <div class="component-group">
-            <Button
-              color="blue"
-              :disabled="!repositoryName"
-              @click="doRepositoryTask"
-            >{{ nextText }}</Button>
+            <Button color="blue" :disabled="!repositoryName" @click="doRepositoryTask">{{
+              nextText
+            }}</Button>
           </div>
           <div class="component-group">
             <a @click="createNewRepository = !createNewRepository">{{ toggleText }}</a>
@@ -81,7 +86,7 @@ export default defineComponent({
           login: store.state.login,
           name: store.state.name,
           bio: store.state.bio,
-          photo: store.state.bio,
+          photo: store.state.photo,
           token: store.state.token,
           repository: store.state.repository,
           branch: store.state.branch,
@@ -91,7 +96,7 @@ export default defineComponent({
           return Promise.all([
             createNewRepository.value &&
               core.createMeta(store.state.login, store.state.repository, store.state.token),
-            new Promise((resolve) => setTimeout(resolve, 2000)),
+            new Promise(resolve => setTimeout(resolve, 2000)),
           ]).then(() => {
             store.commit(MutationTypes.APP_INITIALIZAED, undefined);
             router.push({ name: 'Home' });
@@ -103,7 +108,7 @@ export default defineComponent({
       return store
         .dispatch(ActionTypes.CREATE_REPOSITORY, repositoryName.value)
         .then(() => registUserAndContinue())
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           const status = err?.response?.status;
           if (status === 422) {
@@ -121,7 +126,7 @@ export default defineComponent({
           repositoryName: repositoryName.value,
         })
         .then(() => registUserAndContinue())
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           const status = err?.response?.status;
           if (status === 404) {
