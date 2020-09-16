@@ -4,7 +4,6 @@
       <span class="loading__icon__dot" />
       <span class="loading__icon__dot" />
       <span class="loading__icon__dot" />
-      <span class="loading__icon__dot" />
     </div>
   </div>
 </template>
@@ -32,44 +31,69 @@ export default defineComponent({
 
   &__icon {
     padding: 0.5rem;
-    width: 4rem;
-    height: 4rem;
     border-radius: 50%;
-    -webkit-animation: 1s spin linear infinite;
     animation: 1s spin linear infinite;
 
     &__dot {
-      display: block;
-      width: 50%;
-      height: 50%;
+      display: inline-block;
+      width: 1rem;
+      height: 1rem;
       border-radius: 50%;
-      float: left;
+      margin: 0 4px;
 
       &:nth-child(1) {
-        background-color: #ffcdd2;
+        animation: bounce 4s infinite;
       }
       &:nth-child(2) {
-        background-color: #c8e6e1;
+        animation: bounce 4s 0.2s infinite;
       }
       &:nth-child(3) {
-        background-color: #faf0c8;
-      }
-      &:nth-child(4) {
-        background-color: #c8e6fa;
+        animation: bounce 4s 0.4s infinite;
       }
     }
   }
 }
 
-@-webkit-keyframes spin {
-  100% {
-    -webkit-transform: rotate(360deg);
+@keyframes bounce {
+  0% {
+    transform: translateY(0);
+    background-color: #ffcdd2;
   }
-}
 
-@keyframes spin {
+  12.5% {
+    transform: translateY(1rem);
+  }
+
+  25% {
+    transform: translateY(0rem);
+    background-color: #c8e6e1;
+  }
+
+  37.5% {
+    transform: translateY(1rem);
+  }
+
+  50% {
+    transform: translateY(0rem);
+    background-color: #faf0c8;
+  }
+
+  62.5% {
+    transform: translateY(1rem);
+  }
+
+  75% {
+    transform: translateY(0rem);
+    background-color: #c8e6fa;
+  }
+
+  87.5% {
+    transform: translateY(1rem);
+  }
+
   100% {
-    transform: rotate(360deg);
+    transform: translateY(0);
+    background-color: #ffcdd2;
   }
 }
 </style>
