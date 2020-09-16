@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { v4 as uuidv4 } from 'uuid';
 import { encode, decode } from 'js-base64';
 import GithubAPI from '@/apis/github';
