@@ -62,6 +62,7 @@ $gray_20: darken($gray, 20%);
       border-radius: 50%;
       overflow: hidden;
       border: 1px solid $gray_10;
+      -webkit-mask-image: -webkit-radial-gradient(white, black);
     }
   }
 

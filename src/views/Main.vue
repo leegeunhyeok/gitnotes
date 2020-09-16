@@ -36,11 +36,9 @@
               />
             </div>
             <div class="component-group">
-              <Button
-                color="blue"
-                :disabled="!input || loading"
-                @click="getUserProfile"
-              >{{ input && !loading ? '시작하기' : '...' }}</Button>
+              <Button color="blue" :disabled="!input || loading" @click="getUserProfile">{{
+                input && !loading ? '시작하기' : '...'
+              }}</Button>
             </div>
           </div>
         </transition>
@@ -56,7 +54,6 @@ import { useRouter } from 'vue-router';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
-import core from '@/core';
 import GithubAPI from '@/apis/github';
 import M, { messageFrom } from '@/messages';
 import Button from '@/components/Button.vue';
@@ -83,8 +80,14 @@ export default defineComponent({
       const hasStoredUser = await store.dispatch(ActionTypes.LOAD_USER, undefined);
       doRegistration.value = !hasStoredUser;
       if (!hasStoredUser) throw new Error('No user found');
-      await store.dispatch(ActionTypes.GIT_INIT, undefined);
-      await store.dispatch(ActionTypes.LOAD_METADATA, undefined);
+
+      // Show splash image (Minimum 1.5 sec)
+      await Promise.all([
+        await store.dispatch(ActionTypes.GIT_INIT, undefined).then(() => {
+          return store.dispatch(ActionTypes.LOAD_METADATA, undefined);
+        }),
+        new Promise(resolve => setTimeout(resolve, 1500)),
+      ]);
       store.commit(MutationTypes.APP_INITIALIZAED, undefined);
       router.push({ name: 'Home' });
     })().catch(() => {
@@ -100,7 +103,7 @@ export default defineComponent({
       store
         .dispatch(ActionTypes.GET_PROFILE, input.value)
         .then(() => (available.value = true)) // Success
-        .catch((err) => {
+        .catch(err => {
           console.error(err);
           const status = err?.response?.status;
           if (status === 403) {
