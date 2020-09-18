@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class="appTheme">
     <transition name="notification">
       <Notification :message="message" v-show="show" />
     </transition>
@@ -42,11 +42,12 @@ export default defineComponent({
     provideStore();
     const { show, message } = useNotification();
     const isLoading = computed(() => store.state.loading);
+    const appTheme = computed(() => store.state.theme);
 
     // Application initialization
     store.dispatch(ActionTypes.PREPARE_DATABASE);
 
-    return { show, message, isLoading };
+    return { show, message, isLoading, appTheme};
   },
 });
 </script>

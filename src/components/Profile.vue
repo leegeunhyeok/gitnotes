@@ -34,6 +34,7 @@ export default defineComponent({
     const store = useStore();
     const user = computed(() => store.getters.USER);
     const noteSummary = computed(() => store.getters.SUMMARY);
+
     return { user, noteSummary };
   },
 });
@@ -42,32 +43,80 @@ export default defineComponent({
 <style lang="scss">
 @import '@/styles/colors';
 @import '@/styles/content';
+@import '@/styles/responsive';
 
 $gray_10: darken($gray, 10%);
 $gray_20: darken($gray, 20%);
+
+
+@mixin grow($delay: 0s) {
+  will-change: transform;
+  transform: scale(0);
+  animation: grow 1s $delay alternate forwards;
+}
 
 .profile {
   @include content;
 
   & > * {
-    margin-top: 1rem;
+    margin-top: 1.5rem;
   }
 
   &__photo {
-    width: 6rem;
-    height: 6rem;
+    position: relative;
+    width: 10rem;
+    height: 10rem;
     margin: auto;
+    @include grow;
 
-    & > * {
+    & * {
       border-radius: 50%;
       overflow: hidden;
-      border: 1px solid $gray_10;
       -webkit-mask-image: -webkit-radial-gradient(white, black);
+    }
+
+    & .image {
+      img {
+        border: 3px solid #fff;
+      }
+
+      @at-root #app.red & {
+        border: 3px solid $red;
+      }
+
+      @at-root #app.pink & {
+        border: 3px solid $pink;
+      }
+
+      @at-root #app.orange & {
+        border: 3px solid $orange;
+      }
+
+      @at-root #app.yellow & {
+        border: 3px solid $yellow;
+      }
+
+      @at-root #app.green & {
+        border: 3px solid $green;
+      }
+
+      @at-root #app.blue & {
+        border: 3px solid $blue;
+      }
+
+      @at-root #app.purple & {
+        border: 3px solid $purple;
+      }
+
+      @at-root #app.black & {
+        border: 3px solid $black;
+      }
     }
   }
 
   &__name {
     font-size: 1.2rem;
+    @include grow(0.1s);
 
     &--login {
       font-size: 0.8rem;
@@ -81,6 +130,10 @@ $gray_20: darken($gray, 20%);
     display: flex;
     justify-content: space-around;
     align-items: center;
+    @include grow(0.2s);
+    @include size(lg) {
+      justify-content: space-evenly;
+    }
 
     &__item {
       & > * {
@@ -105,9 +158,20 @@ $gray_20: darken($gray, 20%);
       }
 
       p {
+        color: #aaa;
         margin: 0;
       }
     }
+  }
+}
+
+
+@keyframes grow {
+  0% {
+    transform: scale(0);
+  }
+  100% {
+    transform: scale(1);
   }
 }
 </style>
