@@ -179,7 +179,6 @@ $gray_20: darken($gray, 20%);
   }
 }
 
-
 @keyframes grow {
   0% {
     transform: scale(0);
