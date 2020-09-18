@@ -8,6 +8,7 @@ import { Ref } from '@/interfaces/github';
 
 export interface GitNotesMeta {
   version: string;
+  theme: GitNotesTheme;
   tags: Tag[];
   notes: Note[];
 }
@@ -17,6 +18,7 @@ export interface User {
   name: string;
   bio: string;
   photo: string;
+  theme: string;
   token: string;
   repository: string;
   branch: string;
@@ -37,8 +39,11 @@ export interface Note {
   updatedAt: Date;
 }
 
+export type GitNotesTheme = 'red' | 'pink' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'black';
+
 export const initialMeta: GitNotesMeta = {
   version: pkg.version,
+  theme: 'blue',
   tags: [],
   notes: [],
 };
@@ -103,6 +108,7 @@ export class GitNotesCore {
         name: String,
         bio: String,
         photo: String,
+        theme: String,
         repository: String,
         branch: String,
         token: String,
@@ -190,13 +196,14 @@ export class GitNotesCore {
         return meta;
       });
     } else {
-      return this.saveMeta([], []);
+      return this.saveMeta('blue', [], []);
     }
   }
 
-  saveMeta(tags: Tag[], notes: Note[]) {
+  saveMeta(theme: GitNotesTheme, tags: Tag[], notes: Note[]) {
     const metadata: GitNotesMeta = {
       version: pkg.version,
+      theme,
       tags,
       notes,
     };

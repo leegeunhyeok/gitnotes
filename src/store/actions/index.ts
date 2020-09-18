@@ -126,7 +126,7 @@ export const actions: ActionTree<State, State> & Actions = {
   },
   [ActionTypes.SAVE_METADATA]({ state }) {
     if (!state.init) throw new Error('Application not initialized');
-    return core.saveMeta(state.tags, state.notes);
+    return core.saveMeta(state.theme, state.tags, state.notes);
   },
   [ActionTypes.GET_NOTE_CONTENT]({ state }, { name, tag }) {
     if (!state.init) throw new Error('Application not initialized');

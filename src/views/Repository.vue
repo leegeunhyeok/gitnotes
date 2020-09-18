@@ -87,6 +87,7 @@ export default defineComponent({
           name: store.state.name,
           bio: store.state.bio,
           photo: store.state.photo,
+          theme: store.state.theme,
           token: store.state.token,
           repository: store.state.repository,
           branch: store.state.branch,

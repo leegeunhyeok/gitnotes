@@ -1,4 +1,4 @@
-import { GitNotesMeta, Note, Tag } from '@/core';
+import { GitNotesTheme, Note, Tag } from '@/core';
 
 export interface State {
   init: boolean;
@@ -9,6 +9,7 @@ export interface State {
   name: string;
   bio: string;
   photo: string;
+  theme: GitNotesTheme;
   token: string;
   repository: string;
   branch: string;
@@ -25,6 +26,7 @@ export const state: State = {
   name: '',
   bio: '',
   photo: '',
+  theme: 'blue',
   token: '',
   repository: '',
   branch: '',
