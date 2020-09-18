@@ -3,7 +3,7 @@
     <h3>🔑 깃허브 액세스 토큰이 필요합니다</h3>
     <div class="regist__form">
       <div class="component-group">
-        <input type="password" placeholder="Access token" v-model="token" />
+        <input type="password" placeholder="Access token" v-model="token" spellcheck="false" />
       </div>
       <div class="component-group">
         <Button color="blue" :disabled="!token" @click="tokenValidation">확인</Button>

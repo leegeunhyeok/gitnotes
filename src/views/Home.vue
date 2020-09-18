@@ -2,8 +2,11 @@
   <div class="home">
     <Profile/>
     <!-- Notes -->
+    <transition name="slide">
+      <NoteEditor v-model:initialContent="content" @close="writing = false" v-show="writing"/>
+    </transition>
     <div class="home__footer">
-      <Button :color="theme">
+      <Button :color="theme" @click="writing = true">
         <span/>
       </Button>
     </div>
@@ -11,22 +14,25 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import Button from '@/components/Button.vue';
 import Profile from '@/components/Profile.vue';
+import NoteEditor from '@/components/NoteEditor.vue';
 
 export default defineComponent({
   name: 'Home',
-  components: { Button, Profile },
+  components: { Button, Profile, NoteEditor },
   setup() {
     const { getters } = useStore();
     const router = useRouter();
+    const writing = ref(false);
+    const content = ref('');
     getters[GetterTypes.APPLICATION_INITIALIZED] || router.push({ name: 'Main' });
 
-    return { theme: getters[GetterTypes.THEME] };
+    return { theme: getters[GetterTypes.THEME], writing, content };
   },
 });
 </script>

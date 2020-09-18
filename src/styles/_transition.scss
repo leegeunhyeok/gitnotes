@@ -29,3 +29,12 @@
 .notification-leave-to {
   transform: translate(-50%, -100px) !important;
 }
+
+.slide-enter-active,
+.slide-leave-active {
+  transition: transform .5s;
+}
+.slide-enter-from,
+.slide-leave-to {
+  transform: translateY(100%);
+}
