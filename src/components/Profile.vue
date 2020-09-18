@@ -11,10 +11,12 @@
       <div class="profile__summary__item">
         <span class="tag"></span>
         <p>{{ noteSummary.tagCount }}</p>
+        <h6>Tags</h6>
       </div>
       <div class="profile__summary__item">
         <span class="note"></span>
         <p>{{ noteSummary.noteCount }}</p>
+        <h6>Notes</h6>
       </div>
     </div>
   </div>
@@ -136,6 +138,8 @@ $gray_20: darken($gray, 20%);
     }
 
     &__item {
+      position: relative;
+
       & > * {
         float: left;
         line-height: $icon-size;
@@ -158,8 +162,18 @@ $gray_20: darken($gray, 20%);
       }
 
       p {
-        color: #aaa;
+        color: $gray_20;
         margin: 0;
+      }
+
+      h6 {
+        position: absolute;
+        top: 1.2rem;
+        margin: 0;
+        color: $gray_20;
+        font-weight: normal;
+        width: 100%;
+        text-align: center;
       }
     }
   }
