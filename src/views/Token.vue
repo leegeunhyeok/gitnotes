@@ -23,6 +23,7 @@
             <p>
               <a
                 href="https://docs.github.com/en/github/authenticating-to-github/creating-a-personal-access-token"
+                target="_blank"
               >여기</a>를 참고하여 발급받을 수 있으며,
               <br />위 사진과 같은 저장소 권한이 필요합니다 😉
             </p>
@@ -34,9 +35,6 @@
               <u style="color: tomato">일절 공개하지 않습니다</u> 🔐
             </p>
           </div>
-        </template>
-        <template v-slot:footer>
-          <Button style="width: 100%" color="green" @click="showModal = false">알겠어요</Button>
         </template>
       </Modal>
     </transition>
