@@ -11,7 +11,13 @@
       <Button/>
     </div>
     <main>
-      <Note v-for="note in notes" :id="note.id" :title="note.title" :tag="note.tag" :key="note.id" @click="getNoteContent"/>
+      <Note v-for="note in notes"
+        :id="note.id"
+        :title="note.title"
+        :tag="note.tag"
+        :key="note.id"
+        @click="getNoteContent(note)"
+      />
     </main>
     <!-- Notes -->
     <transition name="fade">
@@ -50,58 +56,70 @@ export default defineComponent({
       // getters[GetterTypes.TAGS]
       const tags = [
         {
-          id: '23daasd',
-          name: 'web',
+          id: 'tag_id',
+          name: 'Web',
           color: 'blue'
         }
       ] as Tag[]
 
       return ([{
         id: 'test',
-        tag: '23daasd',
-        title: 'Vue.js 3 기초 정리',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       }, {
         id: 'test2',
-        tag: '23daasd',
-        title: 'React 기초 정리!!',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       }, {
         id: 'test3',
-        tag: '23daasd',
-        title: 'React 기초 정리!!',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       }, {
         id: 'test4',
-        tag: '23daasd',
-        title: 'React 기초 정리!!',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       },{
         id: 'test5',
-        tag: '23daasd',
-        title: 'React 기초 정리!!',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       }, {
         id: 'test6',
-        tag: '23daasd',
-        title: 'React 기초 정리!!',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       }, {
         id: 'test7',
-        tag: '23daasd',
-        title: 'React 기초 정리!!',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       },{
         id: 'test8',
-        tag: '23daasd',
-        title: 'React 기초 정리!!',
+        tag: 'tag_id',
+        title: 'Sample',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },{
+        id: 'test8',
+        tag: 'tag_id',
+        title: 'Sample',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },{
+        id: 'test8',
+        tag: 'tag_id',
+        title: 'Sample',
         createdAt: new Date(),
         updatedAt: new Date(),
       }] as NoteModel[]).map((note) => {
@@ -113,8 +131,8 @@ export default defineComponent({
     })
     getters[GetterTypes.APPLICATION_INITIALIZED] || router.push({ name: 'Main' });
     
-    const getNoteContent = (note: NoteModel) => {
-      dispatch(ActionTypes.GET_NOTE_CONTENT, { name: note.title, tagId: note.tag }).then(noteContent => {
+    const getNoteContent = (note: NoteModel & { tag: Tag | null }) => {
+      dispatch(ActionTypes.GET_NOTE_CONTENT, { name: note.title, tagId: '' }).then(noteContent => {
         content.value = noteContent;
       });
     }
@@ -204,7 +222,7 @@ export default defineComponent({
     padding: 0 1rem;
     margin-bottom: 5.5rem;
     opacity: 0;
-    animation: fade .4s .8s linear forwards;
+    animation: fade .4s 1s linear forwards;
   }
 
   &__footer {
@@ -212,7 +230,10 @@ export default defineComponent({
     bottom: 0;
     left: 0;
     width: 100%;
+    padding-top: 1rem;
     padding-bottom: 2rem;
+    background: rgb(255,255,255);
+    background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
     @include grow(.8s);
 
     button {
