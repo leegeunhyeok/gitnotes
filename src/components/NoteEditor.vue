@@ -2,11 +2,14 @@
   <div class="editor">
     <div class="editor__container">
       <div class="editor__container__header">
-        <Button :color="theme" @click="onClose"/>
+        <Button :color="theme" @click="onClose">
+          <span/>
+        </Button>
       </div>
       <div class="editor__container__body">
         <input type="text" placeholder="제목" spellcheck="false">
         <textarea v-model="content" placeholder="내용" spellcheck="false"/>
+        <Button>저장하기</Button>
       </div>
     </div>
   </div>
@@ -89,32 +92,41 @@ export default defineComponent({
     @include content;
     margin: auto;
     height: 100%;
+    max-width: 700px;
 
     &__header {
+      display: inline-block;
       padding-top: 0;
-      height: 50px;
+      width: 100%;
       
       & > button {
-        width: 24px;
-        height: 24px;
-        background-image: url('~@/assets/close.svg');
-        background-position: 1px 1px;
         float: right;
+
+        span {
+          display: block;
+          width: 24px;
+          height: 24px;
+          background-image: url('~@/assets/close.svg');
+        }
       }
     }
 
     &__body {
       position: relative;
-      height: 100%;
+      height: calc(100% - 4rem);
 
       @mixin field {
         outline: none;
         padding: 1rem;
         font-size: 1rem;
-        border-radius: 12px;
+        border-radius: 24px;
         background-color: #fff;
         border: none;
         width: 100%;
+      }
+
+      & > * {
+        display: block;
       }
 
       input[type=text] {
@@ -123,12 +135,15 @@ export default defineComponent({
       }
 
       textarea {
-        position: absolute;
-        left: 0;
-        top: 5rem;
-        bottom: 4rem;
-        resize: none;
         @include field;
+        resize: none;
+        height: calc(100% - 8rem);
+        margin-bottom: 14px;
+      }
+
+      button {
+        width: 100%;
+        padding: 1rem;
       }
     }
   }

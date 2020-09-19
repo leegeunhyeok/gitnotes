@@ -1,6 +1,7 @@
 <template>
   <div class="profile">
     <div class="profile__photo">
+      <span/>
       <Image :src="user.photo" />
     </div>
     <div class="profile__name">
@@ -47,6 +48,7 @@ export default defineComponent({
 @import '@/styles/content';
 @import '@/styles/responsive';
 
+$profile_size: 10rem;
 $gray_10: darken($gray, 10%);
 $gray_20: darken($gray, 20%);
 
@@ -62,13 +64,17 @@ $gray_20: darken($gray, 20%);
   padding-top: 0;
 
   & > * {
-    margin-top: 1.5rem;
+    margin-top: 1rem;
+
+    @include size(lg) {
+      margin-top: 1.5rem;
+    }
   }
 
   &__photo {
     position: relative;
-    width: 10rem;
-    height: 10rem;
+    width: $profile_size;
+    height: $profile_size;
     margin: auto;
     @include grow;
 
@@ -76,6 +82,49 @@ $gray_20: darken($gray, 20%);
       border-radius: 50%;
       overflow: hidden;
       -webkit-mask-image: -webkit-radial-gradient(white, black);
+    }
+
+    & > span {
+      display: block;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: $profile_size;
+      height: $profile_size;
+      opacity: .5;
+      animation: breath 1s 1s alternate infinite;
+
+      @at-root #app.red & {
+        background-color: $red;
+      }
+
+      @at-root #app.pink & {
+        background-color: $pink;
+      }
+
+      @at-root #app.orange & {
+        background-color: $orange;
+      }
+
+      @at-root #app.yellow & {
+        background-color: $yellow;
+      }
+
+      @at-root #app.green & {
+        background-color: $green;
+      }
+
+      @at-root #app.blue & {
+        background-color: $blue;
+      }
+
+      @at-root #app.purple & {
+        background-color: $purple;
+      }
+
+      @at-root #app.black & {
+        background-color: $black;
+      }
     }
 
     & .image {
@@ -186,6 +235,12 @@ $gray_20: darken($gray, 20%);
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes breath {
+  100% {
+    transform: scale(1.1);
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <header>
-      <Button class="syncing">
+      <Button :class="syncing ? 'syncing' : null">
         <span/>
       </Button>
     </header>
@@ -51,14 +51,18 @@ export default defineComponent({
 }
 
 .home {
-  padding: 1rem;
+  padding: .5rem;
   max-width: 700px;
   margin: auto;
 
   header {
     text-align: right;
+    padding: .5rem;
+    padding-bottom: 0;
 
     button {
+      padding: 5px;
+
       & > span {
         display: block;
         width: 24px;
