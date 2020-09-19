@@ -1,8 +1,13 @@
 <template>
   <div class="home">
+    <header>
+      <Button class="syncing">
+        <span/>
+      </Button>
+    </header>
     <Profile/>
     <!-- Notes -->
-    <transition name="slide">
+    <transition name="fade">
       <NoteEditor v-model:initialContent="content" @close="writing = false" v-show="writing"/>
     </transition>
     <div class="home__footer">
@@ -50,6 +55,30 @@ export default defineComponent({
   max-width: 700px;
   margin: auto;
 
+  header {
+    text-align: right;
+
+    button {
+      & > span {
+        display: block;
+        width: 24px;
+        height: 24px;
+        background-image: url('~@/assets/sync.svg');
+      }
+
+      &.syncing {
+        &:hover {
+          cursor: default;
+          background-color: #fff;
+        }
+
+        & > span {
+          animation: spin 2s linear infinite;
+        }
+      }
+    }
+  }
+
   &__footer {
     position: fixed;
     bottom: 0;
@@ -77,6 +106,12 @@ export default defineComponent({
   }
   100% {
     transform: scale(1);
+  }
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(-360deg);
   }
 }
 </style>

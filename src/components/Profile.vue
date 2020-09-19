@@ -59,6 +59,7 @@ $gray_20: darken($gray, 20%);
 
 .profile {
   @include content;
+  padding-top: 0;
 
   & > * {
     margin-top: 1.5rem;

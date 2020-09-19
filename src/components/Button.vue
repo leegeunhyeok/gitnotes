@@ -64,7 +64,7 @@ export default defineComponent({
 }
 
 .button {
-  @include button($white, $black);
+  @include button(#fff, $black);
 
   &--red {
     @include button($red, $white);
