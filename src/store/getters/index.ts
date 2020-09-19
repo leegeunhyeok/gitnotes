@@ -1,6 +1,6 @@
 import { GetterTree } from 'vuex';
 import { State } from '@/store/state';
-import { GitNotesTheme } from '@/core';
+import { GitNotesTheme, Note, Tag } from '@/core';
 
 interface UserBasic {
   name: string;
@@ -16,6 +16,8 @@ interface NoteSummary {
 export enum GetterTypes {
   THEME = 'THEME',
   USER = 'USER',
+  TAGS = 'TAGS',
+  NOTES = 'NOTES',
   SUMMARY = 'SUMMARY',
   APPLICATION_INITIALIZED = 'APPLICATION_INITIALIZED',
   USER_STATE_AVAILABLE = 'USER_STATE_AVAILABLE',
@@ -25,6 +27,8 @@ export enum GetterTypes {
 export interface Getters<S = State> {
   [GetterTypes.THEME](state: S): GitNotesTheme;
   [GetterTypes.USER](state: S): UserBasic;
+  [GetterTypes.TAGS](state: S): Tag[];
+  [GetterTypes.NOTES](state: S): Note[];
   [GetterTypes.SUMMARY](state: S): NoteSummary;
   [GetterTypes.APPLICATION_INITIALIZED](state: S): boolean;
   [GetterTypes.USER_STATE_AVAILABLE](state: S): boolean;
@@ -37,6 +41,12 @@ export const getters: GetterTree<State, State> & Getters = {
   },
   [GetterTypes.USER]({ login, name, bio, photo }) {
     return { login, name, bio, photo };
+  },
+  [GetterTypes.TAGS]({ tags }) {
+    return tags;
+  },
+  [GetterTypes.NOTES]({ notes }) {
+    return notes;
   },
   [GetterTypes.SUMMARY]({ tags, notes }) {
     return { tagCount: tags.length, noteCount: notes.length };

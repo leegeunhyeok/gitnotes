@@ -1,4 +1,4 @@
-import core, { GitNotesMeta, Note, GitNotesCore } from '@/core';
+import core, { GitNotesMeta, GitNotesCore } from '@/core';
 import GithubAPI from '@/apis/github';
 import { ActionTree, ActionContext } from 'vuex';
 import { State } from '@/store/state';
@@ -48,15 +48,15 @@ export interface Actions {
   ): Promise<GitNotesMeta>;
   [ActionTypes.GET_NOTE_CONTENT](
     context: AugmentedActionContext,
-    payload: { name: string; tag?: string },
+    payload: { name: string; tagId?: string },
   ): Promise<string>;
   [ActionTypes.PUT_NOTE_CONTENT](
     context: AugmentedActionContext,
-    payload: { name: string; content: string; tag?: string },
+    payload: { name: string; content: string; tagId?: string },
   ): Promise<RepositoryFileContent>;
   [ActionTypes.DELETE_NOTE](
     context: AugmentedActionContext,
-    payload: { name: string; tag?: string },
+    payload: { name: string; tagId?: string },
   ): Promise<boolean>;
 }
 
@@ -128,16 +128,22 @@ export const actions: ActionTree<State, State> & Actions = {
     if (!state.init) throw new Error('Application not initialized');
     return core.saveMeta(state.theme, state.tags, state.notes);
   },
-  [ActionTypes.GET_NOTE_CONTENT]({ state }, { name, tag }) {
+  [ActionTypes.GET_NOTE_CONTENT]({ state }, { name, tagId }) {
     if (!state.init) throw new Error('Application not initialized');
+    let tag: string | undefined= '';
+    if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
     return core.getNote(name, tag);
   },
-  [ActionTypes.PUT_NOTE_CONTENT]({ state }, { name, content, tag }) {
+  [ActionTypes.PUT_NOTE_CONTENT]({ state }, { name, content, tagId }) {
     if (!state.init) throw new Error('Application not initialized');
+    let tag: string | undefined= '';
+    if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
     return core.putNote(name, content, tag);
   },
-  [ActionTypes.DELETE_NOTE]({ state }, { name, tag }) {
+  [ActionTypes.DELETE_NOTE]({ state }, { name, tagId }) {
     if (!state.init) throw new Error('Application not initialized');
+    let tag: string | undefined= '';
+    if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
     return core.deleteNote(name, tag).then(res => res.deleted);
   },
 };
