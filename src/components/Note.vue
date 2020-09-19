@@ -38,10 +38,17 @@ export default defineComponent({
 @import '@/styles/responsive';
 
 .note {
+  cursor: pointer;
   display: flex;
   align-items: flex-start;
   width: 100%;
   padding: .8rem;
+  border-radius: 8px;
+  transition: background-color .2s;
+
+  &:hover {
+    background-color: #eee;
+  }
 
   &__tag {
     padding: .2rem .4rem;
