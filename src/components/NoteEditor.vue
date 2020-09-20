@@ -9,7 +9,7 @@
       <div class="editor__container__body">
         <input type="text" placeholder="제목" spellcheck="false">
         <textarea v-model="content" placeholder="내용" spellcheck="false"/>
-        <Button>저장하기</Button>
+        <Button @click="onSave">저장하기</Button>
       </div>
     </div>
   </div>
@@ -38,7 +38,11 @@ export default defineComponent({
     const { getters } = useStore();
     const content = ref(props.initialContent);
     const onClose = () => emit('close');
-    return { theme: getters[GetterTypes.THEME], content, onClose };
+    const onSave = () => {
+      // TODO: Save data (Github, IDB)
+      console.log('save')
+    };
+    return { theme: getters[GetterTypes.THEME], content, onClose, onSave };
   }
 });
 </script>
