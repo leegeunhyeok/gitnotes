@@ -2,16 +2,17 @@
   <div class="home">
     <header>
       <Button :class="syncing ? 'syncing' : null">
-        <span/>
+        <span />
       </Button>
     </header>
-    <Profile/>
+    <Profile />
     <div class="home__filter">
-      <hr/>
-      <Button/>
+      <hr />
+      <Button />
     </div>
     <main>
-      <Note v-for="note in notes"
+      <Note
+        v-for="note in notes"
         :id="note.id"
         :title="note.title"
         :tag="note.tag"
@@ -21,18 +22,18 @@
     </main>
     <!-- Notes -->
     <transition name="fade">
-      <NoteEditor v-model:initialContent="content" @close="writing = false" v-show="writing"/>
+      <NoteEditor v-model:initialContent="content" @close="writing = false" v-show="writing" />
     </transition>
     <div class="home__footer">
       <Button :color="theme" @click="writing = true">
-        <span/>
+        <span />
       </Button>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
@@ -58,91 +59,113 @@ export default defineComponent({
         {
           id: 'tag_id',
           name: 'Web',
-          color: 'blue'
-        }
-      ] as Tag[]
+          color: 'blue',
+        },
+      ] as Tag[];
 
-      return ([{
-        id: 'test',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, {
-        id: 'test2',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, {
-        id: 'test3',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, {
-        id: 'test4',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },{
-        id: 'test5',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, {
-        id: 'test6',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }, {
-        id: 'test7',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },{
-        id: 'test8',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },{
-        id: 'test8',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      },{
-        id: 'test8',
-        tag: 'tag_id',
-        title: 'Sample',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      }] as NoteModel[]).map((note) => {
+      return ([
+        {
+          id: 'test',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test2',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test3',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test4',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test5',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test6',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test7',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test8',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test8',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+        {
+          id: 'test8',
+          tag: 'tag_id',
+          title: 'Sample',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ] as NoteModel[]).map(note => {
         return {
           ...note,
-          ...(note.tag ? { tag: tags.find((tag) => tag.id === note.tag) || note.tag } : null)
-        }
+          ...(note.tag ? { tag: tags.find(tag => tag.id === note.tag) || note.tag } : null),
+        };
       });
-    })
+    });
     getters[GetterTypes.APPLICATION_INITIALIZED] || router.push({ name: 'Main' });
-    
+
+    watch(
+      () => writing.value,
+      val => {
+        if (val) {
+          document.body.setAttribute('style', 'overflow:hidden');
+        } else {
+          document.body.removeAttribute('style');
+        }
+      },
+    );
+
     const getNoteContent = (note: NoteModel & { tag: Tag | null }) => {
       dispatch(ActionTypes.GET_NOTE_CONTENT, { name: note.title, tagId: '' }).then(noteContent => {
         content.value = noteContent;
       });
-    }
+    };
 
     return {
       theme: getters[GetterTypes.THEME],
       notes: notes,
       writing,
       content,
-      getNoteContent
+      getNoteContent,
     };
   },
 });
@@ -154,17 +177,17 @@ export default defineComponent({
 @mixin grow($delay: 0s) {
   will-change: transform;
   transform: scale(0);
-  animation: grow .5s $delay alternate forwards;
+  animation: grow 0.5s $delay alternate forwards;
 }
 
 .home {
-  padding: .5rem;
+  padding: 0.5rem;
   max-width: 700px;
   margin: auto;
 
   header {
     text-align: right;
-    padding: .5rem;
+    padding: 0.5rem;
     padding-bottom: 0;
 
     button {
@@ -194,7 +217,7 @@ export default defineComponent({
     $line-color: darken($gray, 5%);
     position: relative;
     padding: 0 1rem;
-    @include grow(.6s);
+    @include grow(0.6s);
 
     & > hr {
       border: none;
@@ -207,7 +230,7 @@ export default defineComponent({
       position: absolute;
       top: 50%;
       left: 50%;
-      padding: .2rem .8rem;
+      padding: 0.2rem 0.8rem;
       border: 1px solid $line-color;
       height: 24px;
       width: 60px;
@@ -217,12 +240,12 @@ export default defineComponent({
       transform: translate(-50%, -50%);
     }
   }
-  
+
   main {
     padding: 0 1rem;
     margin-bottom: 5.5rem;
     opacity: 0;
-    animation: fade .4s 1s linear forwards;
+    animation: fade 0.4s 1s linear forwards;
   }
 
   &__footer {
@@ -232,9 +255,9 @@ export default defineComponent({
     width: 100%;
     padding-top: 1rem;
     padding-bottom: 2rem;
-    background: rgb(255,255,255);
-    background: linear-gradient(0deg, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 100%);
-    @include grow(.8s);
+    background: rgb(255, 255, 255);
+    background: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+    @include grow(0.8s);
 
     button {
       box-shadow: 0px 0px 16px rgba(0, 0, 0, 0.2);

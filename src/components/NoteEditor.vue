@@ -3,12 +3,12 @@
     <div class="editor__container">
       <div class="editor__container__header">
         <Button :color="theme" @click="onClose">
-          <span/>
+          <span />
         </Button>
       </div>
       <div class="editor__container__body">
-        <input type="text" placeholder="제목" spellcheck="false">
-        <textarea v-model="content" placeholder="내용" spellcheck="false"/>
+        <input type="text" placeholder="제목" spellcheck="false" />
+        <textarea v-model="content" placeholder="내용" spellcheck="false" />
         <Button @click="onSave">저장하기</Button>
       </div>
     </div>
@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, SetupContext, ref } from 'vue';
+import { defineComponent, SetupContext, onMounted, onBeforeUnmount, ref } from 'vue';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import Button from '@/components/Button.vue';
@@ -30,20 +30,21 @@ export default defineComponent({
   props: {
     initialContent: {
       type: String,
-      default: ''
-    }
+      default: '',
+    },
   },
   components: { Button },
-  setup (props: EditorProps, { emit }: SetupContext) {
+  setup(props: EditorProps, { emit }: SetupContext) {
     const { getters } = useStore();
     const content = ref(props.initialContent);
+
     const onClose = () => emit('close');
     const onSave = () => {
       // TODO: Save data (Github, IDB)
-      console.log('save')
+      console.log('save');
     };
     return { theme: getters[GetterTypes.THEME], content, onClose, onSave };
-  }
+  },
 });
 </script>
 
@@ -102,7 +103,7 @@ export default defineComponent({
       display: inline-block;
       padding-top: 0;
       width: 100%;
-      
+
       & > button {
         float: right;
 
@@ -133,7 +134,7 @@ export default defineComponent({
         display: block;
       }
 
-      input[type=text] {
+      input[type='text'] {
         @include field;
         margin-bottom: 14px;
       }
