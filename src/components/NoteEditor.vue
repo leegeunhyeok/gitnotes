@@ -12,9 +12,23 @@
         </div>
         <div class="editor__tag">
           <!-- TODO: Add tags -->
-          {{ tags }}
+          <span class="empty">없음</span>
+          <span v-for="tag in tags" :class="tag.color" :key="tag.id" @click="setTag(tag)">
+            {{ tags }}
+          </span>
+          <!-- Samples -->
+          <span class="red">1</span>
+          <span class="yellow">2</span>
+          <span class="green">3</span>
+          <span class="blue">4</span>
+          <span class="purple">5</span>
+          <span class="red">1</span>
+          <span class="yellow">2</span>
+          <span class="green">3</span>
+          <span class="blue">4</span>
+          <span class="purple">5</span>
         </div>
-        <div class="editor__tag">
+        <div class="editor__content">
           <textarea v-model="content" placeholder="내용" spellcheck="false" />
         </div>
         <div class="editor__control">
@@ -30,6 +44,7 @@ import { defineComponent, SetupContext, ref } from 'vue';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import Button from '@/components/Button.vue';
+import { Tag } from '@/core';
 
 interface EditorProps {
   initialContent?: string;
@@ -53,12 +68,18 @@ export default defineComponent({
       // TODO: Save data (Github, IDB)
       console.log('save');
     };
+
+    const setTag = (tag: Tag | null) => {
+      console.log(tag?.id);
+    };
+
     return {
       theme: getters[GetterTypes.THEME],
       tags: getters[GetterTypes.TAGS],
       content,
       onClose,
       onSave,
+      setTag,
     };
   },
 });
@@ -68,6 +89,16 @@ export default defineComponent({
 @import '@/styles/colors';
 @import '@/styles/content';
 @import '@/styles/responsive';
+
+@mixin field {
+  outline: none;
+  padding: 1rem;
+  font-size: 1rem;
+  border-radius: 2rem;
+  background-color: #fff;
+  border: none;
+  width: 100%;
+}
 
 .editor {
   position: fixed;
@@ -134,32 +165,22 @@ export default defineComponent({
 
     &__body {
       position: relative;
-      height: calc(100% - 4rem);
+      height: calc(100% - 5rem);
 
-      @mixin field {
-        outline: none;
-        padding: 1rem;
-        font-size: 1rem;
-        border-radius: 24px;
-        background-color: #fff;
-        border: none;
-        width: 100%;
-      }
-
-      & > * {
+      & > div {
         display: block;
+        width: 100%;
+        margin-bottom: 14px;
       }
 
       input[type='text'] {
         @include field;
-        margin-bottom: 14px;
       }
 
       textarea {
         @include field;
         resize: none;
-        height: calc(100% - 8rem);
-        margin-bottom: 14px;
+        height: 100%;
       }
 
       button {
@@ -167,6 +188,76 @@ export default defineComponent({
         padding: 1rem;
       }
     }
+  }
+
+  &__tag {
+    @include field;
+    width: 100%;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+    white-space: nowrap;
+    overflow-x: auto;
+
+    & > span {
+      cursor: pointer;
+      padding: 0.4rem 1rem;
+      font-size: 1rem;
+      border-radius: 2rem;
+      color: #fff;
+      margin-right: 1rem;
+      transition: 0.2s;
+      display: inline-block;
+
+      &:nth-last-child(1) {
+        margin-right: 0;
+      }
+
+      &:hover {
+        opacity: 0.5;
+      }
+
+      &.red {
+        background-color: $red;
+      }
+
+      &.pink {
+        background-color: $pink;
+      }
+
+      &.orange {
+        background-color: $orange;
+      }
+
+      &.yellow {
+        background-color: $yellow;
+      }
+
+      &.green {
+        background-color: $green;
+      }
+
+      &.blue {
+        background-color: $blue;
+      }
+
+      &.purple {
+        background-color: $purple;
+      }
+
+      &.black {
+        background-color: $black;
+      }
+
+      &.empty {
+        color: lighten($black, 30%);
+        background-color: #fff;
+        border: 1px dashed darken($gray, 20%);
+      }
+    }
+  }
+
+  &__content {
+    height: calc(100% - 12rem);
   }
 }
 </style>
