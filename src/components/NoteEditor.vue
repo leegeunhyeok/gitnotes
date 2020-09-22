@@ -7,16 +7,26 @@
         </Button>
       </div>
       <div class="editor__container__body">
-        <input type="text" placeholder="제목" spellcheck="false" />
-        <textarea v-model="content" placeholder="내용" spellcheck="false" />
-        <Button @click="onSave">저장하기</Button>
+        <div class="editor__title">
+          <input type="text" placeholder="제목" spellcheck="false" />
+        </div>
+        <div class="editor__tag">
+          <!-- TODO: Add tags -->
+          {{ tags }}
+        </div>
+        <div class="editor__tag">
+          <textarea v-model="content" placeholder="내용" spellcheck="false" />
+        </div>
+        <div class="editor__control">
+          <Button @click="onSave">저장하기</Button>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, SetupContext, onMounted, onBeforeUnmount, ref } from 'vue';
+import { defineComponent, SetupContext, ref } from 'vue';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import Button from '@/components/Button.vue';
@@ -43,7 +53,13 @@ export default defineComponent({
       // TODO: Save data (Github, IDB)
       console.log('save');
     };
-    return { theme: getters[GetterTypes.THEME], content, onClose, onSave };
+    return {
+      theme: getters[GetterTypes.THEME],
+      tags: getters[GetterTypes.TAGS],
+      content,
+      onClose,
+      onSave,
+    };
   },
 });
 </script>
