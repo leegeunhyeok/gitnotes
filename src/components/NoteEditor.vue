@@ -11,22 +11,38 @@
           <input type="text" placeholder="제목" spellcheck="false" />
         </div>
         <div class="editor__tag">
-          <!-- TODO: Add tags -->
-          <span class="empty">없음</span>
-          <span v-for="tag in tags" :class="tag.color" :key="tag.id" @click="setTag(tag)">
-            {{ tags }}
-          </span>
-          <!-- Samples -->
-          <span class="red">1</span>
-          <span class="yellow">2</span>
-          <span class="green">3</span>
-          <span class="blue">4</span>
-          <span class="purple">5</span>
-          <span class="red">1</span>
-          <span class="yellow">2</span>
-          <span class="green">3</span>
-          <span class="blue">4</span>
-          <span class="purple">5</span>
+          <div class="editor__tag--selected" @click="showTagList = !showTagList">
+            Tag:
+            <span class="tag" :class="selectedTag.color" :key="selectedTag.id">{{
+              selectedTag.name
+            }}</span>
+          </div>
+          <transition name="fade">
+            <div class="editor__tag__list" v-show="showTagList">
+              <!-- TODO: Add tags -->
+              <span class="tag empty" @click="setTag(null)">Empty</span>
+              <span
+                class="tag"
+                v-for="tag in tags"
+                :class="tag.color"
+                :key="tag.id"
+                @click="setTag(tag)"
+              >
+                {{ tags }}
+              </span>
+              <!-- Samples -->
+              <span class="tag red">1</span>
+              <span class="tag yellow">2</span>
+              <span class="tag green">3</span>
+              <span class="tag blue">4</span>
+              <span class="tag purple">5</span>
+              <span class="tag red">6</span>
+              <span class="tag yellow">7</span>
+              <span class="tag green">8</span>
+              <span class="tag blue">9</span>
+              <span class="tag purple">10</span>
+            </div>
+          </transition>
         </div>
         <div class="editor__content">
           <textarea v-model="content" placeholder="내용" spellcheck="false" />
@@ -44,7 +60,7 @@ import { defineComponent, SetupContext, ref } from 'vue';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import Button from '@/components/Button.vue';
-import { Tag } from '@/core';
+import { Tag, EmptyTag } from '@/core';
 
 interface EditorProps {
   initialContent?: string;
@@ -61,7 +77,9 @@ export default defineComponent({
   components: { Button },
   setup(props: EditorProps, { emit }: SetupContext) {
     const { getters } = useStore();
+    const showTagList = ref(false);
     const content = ref(props.initialContent);
+    const selectedTag = ref<Tag>(EmptyTag);
 
     const onClose = () => emit('close');
     const onSave = () => {
@@ -70,12 +88,15 @@ export default defineComponent({
     };
 
     const setTag = (tag: Tag | null) => {
-      console.log(tag?.id);
+      selectedTag.value = tag || EmptyTag;
+      showTagList.value = false;
     };
 
     return {
       theme: getters[GetterTypes.THEME],
       tags: getters[GetterTypes.TAGS],
+      selectedTag,
+      showTagList,
       content,
       onClose,
       onSave,
@@ -94,7 +115,7 @@ export default defineComponent({
   outline: none;
   padding: 1rem;
   font-size: 1rem;
-  border-radius: 2rem;
+  border-radius: 25px;
   background-color: #fff;
   border: none;
   width: 100%;
@@ -192,17 +213,16 @@ export default defineComponent({
 
   &__tag {
     @include field;
+    position: relative;
     width: 100%;
     padding-top: 0.6rem;
     padding-bottom: 0.6rem;
-    white-space: nowrap;
-    overflow-x: auto;
 
-    & > span {
+    & span.tag {
       cursor: pointer;
       padding: 0.4rem 1rem;
       font-size: 1rem;
-      border-radius: 2rem;
+      border-radius: 25px;
       color: #fff;
       margin-right: 1rem;
       transition: 0.2s;
@@ -252,6 +272,31 @@ export default defineComponent({
         color: lighten($black, 30%);
         background-color: #fff;
         border: 1px dashed darken($gray, 20%);
+      }
+    }
+
+    &--selected {
+      cursor: pointer;
+      color: darken($gray, 20%);
+      height: 100%;
+      text-align: left;
+    }
+
+    &__list {
+      @include field;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      text-align: left;
+      padding-bottom: 0;
+      border: 1px solid $gray;
+      max-height: 400px;
+      overflow-y: auto;
+
+      & > span {
+        display: inline-block;
+        margin-bottom: 1rem;
       }
     }
   }

@@ -38,13 +38,27 @@ export interface Note {
   updatedAt: Date;
 }
 
-export type GitNotesTheme = 'red' | 'pink' | 'orange' | 'yellow' | 'green' | 'blue' | 'purple' | 'black';
+export type GitNotesTheme =
+  | 'red'
+  | 'pink'
+  | 'orange'
+  | 'yellow'
+  | 'green'
+  | 'blue'
+  | 'purple'
+  | 'black';
 
 export const initialMeta: GitNotesMeta = {
   version: pkg.version,
   theme: 'blue',
   tags: [],
   notes: [],
+};
+
+export const EmptyTag: Tag = {
+  id: 'none',
+  name: 'Empty',
+  color: 'empty',
 };
 
 class GitNotesError extends Error {
