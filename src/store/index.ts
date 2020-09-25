@@ -5,13 +5,6 @@ import { Getters, getters } from '@/store/getters';
 import { Mutations, mutations } from '@/store/mutations';
 import { Actions, actions } from '@/store/actions';
 
-const store = createStore({
-  state,
-  getters,
-  mutations,
-  actions,
-});
-
 type Store = Omit<VuexStore<State>, 'getters' | 'commit' | 'dispatch'> & {
   commit<K extends keyof Mutations>(
     key: K,
@@ -29,6 +22,13 @@ type Store = Omit<VuexStore<State>, 'getters' | 'commit' | 'dispatch'> & {
     [K in keyof Getters]: ReturnType<Getters[K]>;
   };
 };
+
+const store = createStore({
+  state,
+  getters,
+  mutations,
+  actions,
+});
 
 const StoreSymbol = Symbol();
 export const provideStore = () => provide(StoreSymbol, store);

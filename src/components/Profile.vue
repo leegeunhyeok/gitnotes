@@ -1,7 +1,7 @@
 <template>
   <div class="profile">
     <div class="profile__photo">
-      <span/>
+      <span />
       <Image :src="user.photo" />
     </div>
     <div class="profile__name">
@@ -26,6 +26,7 @@
 <script lang="ts">
 import { defineComponent, computed } from 'vue';
 import { useStore } from '@/store';
+import { GetterTypes } from '@/store/getters';
 import Image from '@/components/Image.vue';
 
 export default defineComponent({
@@ -34,9 +35,9 @@ export default defineComponent({
     Image,
   },
   setup() {
-    const store = useStore();
-    const user = computed(() => store.getters.USER);
-    const noteSummary = computed(() => store.getters.SUMMARY);
+    const { getters } = useStore();
+    const user = computed(() => getters[GetterTypes.USER]);
+    const noteSummary = computed(() => getters[GetterTypes.SUMMARY]);
 
     return { user, noteSummary };
   },
@@ -51,7 +52,6 @@ export default defineComponent({
 $profile_size: 10rem;
 $gray_10: darken($gray, 10%);
 $gray_20: darken($gray, 20%);
-
 
 @mixin grow($delay: 0s) {
   will-change: transform;
@@ -91,7 +91,7 @@ $gray_20: darken($gray, 20%);
       left: 0;
       width: $profile_size;
       height: $profile_size;
-      opacity: .5;
+      opacity: 0.5;
       animation: breath 1s 1s alternate infinite;
 
       @at-root #app.red & {
