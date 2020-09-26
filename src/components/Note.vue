@@ -19,21 +19,21 @@ export default defineComponent({
   props: {
     id: {
       type: String,
-      required: true
+      required: true,
     },
     title: {
       type: String,
-      required: true
+      required: true,
     },
-    tag: Object
+    tag: Object,
   },
-  setup () {
+  setup() {
     // TODO
-  }
+  },
 });
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '@/styles/colors';
 @import '@/styles/responsive';
 
@@ -42,21 +42,21 @@ export default defineComponent({
   display: flex;
   align-items: flex-start;
   width: 100%;
-  padding: .8rem;
+  padding: 0.8rem;
   border-radius: 8px;
-  transition: background-color .2s;
+  transition: background-color 0.2s;
 
   &:hover {
     background-color: #eee;
   }
 
   &__tag {
-    padding: .2rem .4rem;
+    padding: 0.2rem 0.4rem;
     border-radius: 20px;
     color: #fff;
-    font-size: .8rem;
+    font-size: 0.8rem;
     font-weight: bold;
-    margin-right: .5rem;
+    margin-right: 0.5rem;
 
     @include size(lg) {
       margin-right: 1rem;
