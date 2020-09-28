@@ -217,6 +217,7 @@ export default defineComponent({
     $line-color: darken($gray, 5%);
     position: relative;
     padding: 0 1rem;
+    z-index: 1;
     @include grow(0.6s);
 
     & > hr {
