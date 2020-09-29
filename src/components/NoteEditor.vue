@@ -110,6 +110,7 @@ export default defineComponent({
 @import '@/styles/colors';
 @import '@/styles/content';
 @import '@/styles/responsive';
+@import '@/styles/tag';
 
 @mixin field {
   outline: none;
@@ -217,63 +218,6 @@ export default defineComponent({
     width: 100%;
     padding-top: 0.6rem;
     padding-bottom: 0.6rem;
-
-    & span.tag {
-      cursor: pointer;
-      padding: 0.4rem 1rem;
-      font-size: 1rem;
-      border-radius: 25px;
-      color: #fff;
-      margin-right: 1rem;
-      transition: 0.2s;
-      display: inline-block;
-
-      &:nth-last-child(1) {
-        margin-right: 0;
-      }
-
-      &:hover {
-        opacity: 0.5;
-      }
-
-      &.red {
-        background-color: $red;
-      }
-
-      &.pink {
-        background-color: $pink;
-      }
-
-      &.orange {
-        background-color: $orange;
-      }
-
-      &.yellow {
-        background-color: $yellow;
-      }
-
-      &.green {
-        background-color: $green;
-      }
-
-      &.blue {
-        background-color: $blue;
-      }
-
-      &.purple {
-        background-color: $purple;
-      }
-
-      &.black {
-        background-color: $black;
-      }
-
-      &.empty {
-        color: lighten($black, 30%);
-        background-color: #fff;
-        border: 1px dashed darken($gray, 20%);
-      }
-    }
 
     &--selected {
       cursor: pointer;

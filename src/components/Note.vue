@@ -1,6 +1,6 @@
 <template>
   <div class="note">
-    <span class="note__tag" :class="tag.color" v-if="tag">{{ tag.name }}</span>
+    <span class="tag" :class="tag.color" v-if="tag">{{ tag.name }}</span>
     <p>{{ title }}</p>
   </div>
 </template>
@@ -36,6 +36,7 @@ export default defineComponent({
 <style lang="scss" scoped>
 @import '@/styles/colors';
 @import '@/styles/responsive';
+@import '@/styles/tag';
 
 .note {
   cursor: pointer;
@@ -50,13 +51,8 @@ export default defineComponent({
     background-color: #eee;
   }
 
-  &__tag {
-    padding: 0.2rem 0.4rem;
-    border-radius: 20px;
+  span.tag {
     color: #fff;
-    font-size: 0.8rem;
-    font-weight: bold;
-    margin-right: 0.5rem;
 
     @include size(lg) {
       margin-right: 1rem;
