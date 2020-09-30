@@ -7,8 +7,16 @@
     </header>
     <Profile />
     <div class="home__filter">
-      <hr />
-      <Button />
+      <transition name="collapse">
+        <div class="home__filter__list" v-show="showFilterList">
+          <span class="tag">All</span>
+          <span class="tag empty">Empty</span>
+          <span class="tag red">A</span>
+          <span class="tag green">B</span>
+          <span class="tag blue">C</span>
+        </div>
+      </transition>
+      <Button @click="showFilterList = !showFilterList" />
     </div>
     <main>
       <Note
@@ -50,6 +58,7 @@ export default defineComponent({
   setup() {
     const { getters, dispatch } = useStore();
     const router = useRouter();
+    const showFilterList = ref(false);
     const writing = ref(false);
     const content = ref('');
     const notes = computed(() => {
@@ -162,6 +171,7 @@ export default defineComponent({
 
     return {
       theme: getters[GetterTypes.THEME],
+      showFilterList,
       notes: notes,
       writing,
       content,
@@ -173,6 +183,7 @@ export default defineComponent({
 
 <style lang="scss" scoped>
 @import '@/styles/colors';
+@import '@/styles/tag';
 
 @mixin grow($delay: 0s) {
   will-change: transform;
@@ -218,18 +229,11 @@ export default defineComponent({
     position: relative;
     padding: 0 1rem;
     z-index: 1;
+    border-bottom: 1px solid #e1e1e1;
     @include grow(0.6s);
-
-    & > hr {
-      border: none;
-      width: 100%;
-      height: 1px;
-      background-color: $line-color;
-    }
 
     & > button {
       position: absolute;
-      top: 50%;
       left: 50%;
       padding: 0.2rem 0.8rem;
       border: 1px solid $line-color;
@@ -239,6 +243,13 @@ export default defineComponent({
       background-repeat: no-repeat;
       background-position: 16px;
       transform: translate(-50%, -50%);
+    }
+
+    &__list {
+      width: 100%;
+      max-height: 300px;
+      padding-bottom: 20px;
+      overflow: hidden;
     }
   }
 
