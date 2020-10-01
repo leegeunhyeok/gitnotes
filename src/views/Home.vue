@@ -9,7 +9,7 @@
     <div class="home__filter">
       <transition name="collapse">
         <div class="home__filter__list" v-show="showFilterList">
-          <span class="tag">All</span>
+          <span class="tag all">All</span>
           <span class="tag empty">Empty</span>
           <span class="tag red">A</span>
           <span class="tag green">B</span>
@@ -228,13 +228,16 @@ export default defineComponent({
     $line-color: darken($gray, 5%);
     position: relative;
     padding: 0 1rem;
-    z-index: 1;
+    padding-bottom: 25px;
+    margin-bottom: 1rem;
     border-bottom: 1px solid #e1e1e1;
+    box-sizing: content-box;
     @include grow(0.6s);
 
     & > button {
       position: absolute;
       left: 50%;
+      bottom: -25px;
       padding: 0.2rem 0.8rem;
       border: 1px solid $line-color;
       height: 24px;
@@ -247,9 +250,9 @@ export default defineComponent({
 
     &__list {
       width: 100%;
-      max-height: 300px;
-      padding-bottom: 20px;
-      overflow: hidden;
+      max-height: 5rem;
+      overflow-x: auto;
+      white-space: nowrap;
     }
   }
 

@@ -66,4 +66,10 @@ span.tag {
     background-color: #fff;
     border: 1px dashed darken($gray, 20%);
   }
+
+  &.all {
+    color: lighten($black, 30%);
+    background-color: #fff;
+    border: 1px solid #ddd;
+  }
 }
