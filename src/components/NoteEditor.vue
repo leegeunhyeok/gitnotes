@@ -19,6 +19,7 @@
           </div>
           <transition name="fade">
             <div class="editor__tag__list" v-show="showTagList">
+              <p>Tag list</p>
               <!-- TODO: Add tags -->
               <span class="tag empty" @click="setTag(null)">Empty</span>
               <span
@@ -233,10 +234,18 @@ export default defineComponent({
       left: 0;
       width: 100%;
       text-align: left;
+      border-radius: 0;
+      border-top-left-radius: 25px;
+      border-top-right-radius: 25px;
       padding-bottom: 0;
-      border: 1px solid $gray;
+      border-bottom: 1px solid #eee;
       max-height: 400px;
       overflow-y: auto;
+
+      & > p {
+        color: #bbbbbb;
+        margin-top: 0;
+      }
 
       & > span {
         display: inline-block;
