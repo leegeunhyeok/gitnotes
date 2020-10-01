@@ -190,7 +190,7 @@ export class GitNotesCore {
       content: encode(JSON.stringify(initialMeta, null, 2)),
       message: 'Hello, GitNotes!',
       path: GitNotesCore.META_FILE,
-    });
+    }).then(() => (this._init = true));
   }
 
   loadMeta() {
