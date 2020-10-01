@@ -96,7 +96,11 @@ export default defineComponent({
           done.value = true;
           return Promise.all([
             createNewRepository.value &&
-              core.createMeta(store.state.login, store.state.repository, store.state.token),
+              core
+                .createMeta(store.state.login, store.state.repository, store.state.token)
+                .then(() => {
+                  return core.putNote('환영합니다 👋', '# GitNotes 시작하기');
+                }),
             new Promise(resolve => setTimeout(resolve, 2000)),
           ]).then(() => {
             store.commit(MutationTypes.APP_INITIALIZAED, undefined);
