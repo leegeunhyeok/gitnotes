@@ -37,9 +37,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, onBeforeMount, onBeforeUnmount, ref, computed } from 'vue';
+import { defineComponent, onBeforeUnmount, ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/store';
+import { GetterTypes } from '@/store/getters';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
@@ -78,7 +79,7 @@ export default defineComponent({
     );
 
     // Need user name & token
-    onBeforeMount(() => !store.getters.USER_STATE_AVAILABLE && router.push({ name: 'Main' }));
+    !store.getters[GetterTypes.USER_STATE_AVAILABLE] && router.push({ name: 'Main' });
 
     const registUserAndContinue = () => {
       return core
@@ -96,11 +97,11 @@ export default defineComponent({
           done.value = true;
           return Promise.all([
             createNewRepository.value &&
-              core
-                .createMeta(store.state.login, store.state.repository, store.state.token)
-                .then(() => {
-                  return core.putNote('환영합니다 👋', '# GitNotes 시작하기');
-                }),
+              (async () => {
+                await core.createMeta(store.state.login, store.state.repository, store.state.token);
+                await store.dispatch(ActionTypes.GIT_INIT, undefined);
+                await core.putNote('GitNotes 시작하기', '# GitNotes 시작하기');
+              })(),
             new Promise(resolve => setTimeout(resolve, 2000)),
           ]).then(() => {
             store.commit(MutationTypes.APP_INITIALIZAED, undefined);
