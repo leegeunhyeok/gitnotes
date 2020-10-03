@@ -83,9 +83,10 @@ export default defineComponent({
 
       // Show splash image (Minimum 1.5 sec)
       await Promise.all([
-        await store.dispatch(ActionTypes.GIT_INIT, undefined).then(() => {
-          return store.dispatch(ActionTypes.LOAD_METADATA, undefined);
-        }),
+        (async () => {
+          await store.dispatch(ActionTypes.GIT_INIT, undefined);
+          await store.dispatch(ActionTypes.LOAD_METADATA, undefined);
+        })(),
         new Promise(resolve => setTimeout(resolve, 1500)),
       ]);
       store.commit(MutationTypes.APP_INITIALIZAED, undefined);
