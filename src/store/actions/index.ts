@@ -130,19 +130,19 @@ export const actions: ActionTree<State, State> & Actions = {
   },
   [ActionTypes.GET_NOTE_CONTENT]({ state }, { name, tagId }) {
     if (!state.init) throw new Error('Application not initialized');
-    let tag: string | undefined= '';
+    let tag: string | undefined = '';
     if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
     return core.getNote(name, tag);
   },
   [ActionTypes.PUT_NOTE_CONTENT]({ state }, { name, content, tagId }) {
     if (!state.init) throw new Error('Application not initialized');
-    let tag: string | undefined= '';
+    let tag: string | undefined = '';
     if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
     return core.putNote(name, content, tag);
   },
   [ActionTypes.DELETE_NOTE]({ state }, { name, tagId }) {
     if (!state.init) throw new Error('Application not initialized');
-    let tag: string | undefined= '';
+    let tag: string | undefined = '';
     if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
     return core.deleteNote(name, tag).then(res => res.deleted);
   },
