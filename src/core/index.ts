@@ -251,19 +251,19 @@ export class GitNotesCore {
     return this.getContent(noteFilePath).then(res => decode(res.data.content));
   }
 
-  putNote(name: string, content: string, tagName?: string) {
+  async putNote(name: string, content: string, tagName?: string) {
     if (!this._init) throw new Error('Core not initalized');
     const noteFile = `${name}.md`;
     const noteFilePath = [GitNotesCore.NOTES_FOLDER, tagName, noteFile].filter(x => x).join('/');
     const existNote = this._refs.tree.find(ref => ref.path === noteFilePath);
 
-    return this.putContent(
+    const { data } = await this.putContent(
       noteFilePath,
-      encode(content),
+      content,
       existNote ? existNote.sha : undefined,
-    ).then(({ data }) => {
-      return this.updateGitTree(this._username!, this._repository!, this._branch!).then(() => data);
-    });
+    );
+    await this.updateGitTree(this._username!, this._repository!, this._branch!);
+    return data;
   }
 
   async moveNote(
