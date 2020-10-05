@@ -102,7 +102,7 @@ export class GitNotesCore {
     const padder = (num: number, length = 2) => {
       const currentLength = num.toString().length;
       return currentLength < length
-        ? num + new Array(length - currentLength).fill(0).join('')
+        ? new Array(length - currentLength).fill(0).join('') + num
         : num.toString();
     };
     const year = date.getFullYear();
