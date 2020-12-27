@@ -84,6 +84,7 @@ export class GitNotesCore {
   private _metaHash?: string;
   private _user: User = EMPTY_USER;
   private _init = false;
+  public github = GitHubCore;
 
   // eslint-disable-next-line @typescript-eslint/no-empty-function
   private constructor() {}
@@ -132,7 +133,7 @@ export class GitNotesCore {
 
   private getGitContent(path: string) {
     const { login, repository } = this._user;
-    return GitHubCore.getRepositoryContent(login, repository, path).then(res => {
+    return this.github.getRepositoryContent(login, repository, path).then(res => {
       res.data.content = this.toData(res.data.content);
       return res;
     });
@@ -144,7 +145,7 @@ export class GitNotesCore {
     commitConfig: GitHubCoreInterface.Commit | GitHubCoreInterface.HashRequiredCommit,
   ) {
     const { login, repository, branch } = this._user;
-    return GitHubCore.putRepositoryContent(login, repository, path, this.toContent(content), {
+    return this.github.putRepositoryContent(login, repository, path, this.toContent(content), {
       ...commitConfig,
       ...(branch ? { branch } : null),
     });
@@ -160,14 +161,14 @@ export class GitNotesCore {
           if (ref.type === 'tree') delete ref.sha;
         });
       })
-      .then(() => GitHubCore.postTree(login, repository, this._refs.tree))
-      .then(() => GitHubCore.commit(login, repository, this._refs.sha, this._refs.tree, 'Move'))
+      .then(() => this.github.postTree(login, repository, this._refs.tree))
+      .then(() => this.github.commit(login, repository, this._refs.sha, this._refs.tree, 'Move'))
       .then(() => this.updateGitTree());
   }
 
   private deleteGitContent(path: string, commitConfig: GitHubCoreInterface.HashRequiredCommit) {
     const { login, repository, branch } = this._user;
-    return GitHubCore.deleteRepositoryContent(login, repository, path, {
+    return this.github.deleteRepositoryContent(login, repository, path, {
       ...commitConfig,
       ...(branch ? { branch } : null),
     });
@@ -206,17 +207,12 @@ export class GitNotesCore {
     this._refs.tree = [];
     this._user = EMPTY_USER;
     this._init = false;
+    this.github.setToken(); // clear
     await Promise.all([this._db.delete('user'), this._db.delete('tag'), this._db.delete('note')]);
   }
 
-  async gitInit(user: User) {
-    GitHubCore.setToken(user.token);
-    await this.updateGitTree();
-    this._user = user;
-  }
-
   initUser(user: User) {
-    GitHubCore.setToken(user.token);
+    this.github.setToken(user.token);
     this._user = user;
   }
 
@@ -226,7 +222,7 @@ export class GitNotesCore {
 
   async updateGitTree() {
     const { login, repository, branch } = this._user;
-    const { data } = await GitHubCore.getTree(login, repository, branch);
+    const { data } = await this.github.getTree(login, repository, branch);
     this._refs = {
       sha: data.sha,
       tree: data.tree,
