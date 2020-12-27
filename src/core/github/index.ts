@@ -1,12 +1,29 @@
 import axios, { AxiosInstance, AxiosResponse } from 'axios';
+import firebase from 'firebase/app';
+import 'firebase/auth';
+import 'firebase/analytics';
 import * as I from '@/core/github/interface';
+
+interface FirebaseConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId: string;
+}
 
 class GitHubCore {
   static BASE_URL = 'https://api.github.com';
   private api: AxiosInstance;
+  private provider: firebase.auth.GithubAuthProvider;
 
-  constructor() {
+  constructor(firebaseConfig: FirebaseConfig) {
     this.api = axios.create({ baseURL: GitHubCore.BASE_URL });
+    firebase.initializeApp(firebaseConfig);
+    this.provider = new firebase.auth.GithubAuthProvider();
+    this.provider.addScope('repo');
   }
 
   private toGitHubResponse<T>(res: AxiosResponse): I.GitHubAPIResponse<T> {
@@ -14,6 +31,13 @@ class GitHubCore {
       data: res.data || null,
       status: res.status,
     };
+  }
+
+  requestOAuth() {
+    return firebase
+      .auth()
+      .signInWithPopup(this.provider)
+      .then(({ credential }) => (credential as firebase.auth.OAuthCredential)?.accessToken);
   }
 
   setToken(token?: string) {
@@ -138,6 +162,15 @@ class GitHubCore {
     );
   }
 
+  /**
+   * Creates a new file or replaces an existing file in a repository
+   * - API Reference: https://docs.github.com/en/rest/reference/repos#create-or-update-file-contents
+   * @param username Username
+   * @param repository Repository name
+   * @param path File path
+   * @param commit Commit configuration
+   *  - `sha` required if you are updating a file
+   */
   async putRepositoryContent(
     username: string,
     repository: string,
@@ -149,12 +182,41 @@ class GitHubCore {
       sha?: string;
     },
   ) {
-    return this.toGitHubResponse<{ content: I.RepositoryContent }>(
-      await this.api.put(`/repos/${username}/${repository}/contents/${path}`, { ...commit }),
-    );
+    return (
+      this.toGitHubResponse(
+        await this.api.put(`/repos/${username}/${repository}/contents/${path}`, commit),
+      ).status -
+        200 <=
+      1
+    ); // 200 or 201
   }
 
-  // deleteRepositoryContent
+  /**
+   * Delete file from repository
+   * - API Reference: https://docs.github.com/en/rest/reference/repos#delete-a-file
+   * @param username Username
+   * @param repository Repository name
+   * @param path File path
+   * @param commit Commit configuration
+   */
+  async deleteRepositoryContent(
+    username: string,
+    repository: string,
+    path: string,
+    commit: {
+      message: string;
+      branch?: string;
+      sha: string;
+    },
+  ) {
+    return (
+      this.toGitHubResponse(
+        await this.api.delete(`/repos/${username}/${repository}/contents/${path}`, {
+          data: commit,
+        }),
+      ).status === 200
+    );
+  }
 }
 
 export default new GitHubCore();
