@@ -34,7 +34,7 @@ class GitHubCore {
     };
   }
 
-  requestOAuth() {
+  login() {
     return firebase
       .auth()
       .signInWithPopup(this._provider)
