@@ -3,6 +3,7 @@ import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/analytics';
 import * as I from '@/core/github/interface';
+export { I as GitHubCoreInterface };
 
 interface FirebaseConfig {
   apiKey: string;
@@ -16,14 +17,14 @@ interface FirebaseConfig {
 
 class GitHubCore {
   static BASE_URL = 'https://api.github.com';
-  private api: AxiosInstance;
-  private provider: firebase.auth.GithubAuthProvider;
+  private _api: AxiosInstance;
+  private _provider: firebase.auth.GithubAuthProvider;
 
   constructor(firebaseConfig: FirebaseConfig) {
-    this.api = axios.create({ baseURL: GitHubCore.BASE_URL });
+    this._api = axios.create({ baseURL: GitHubCore.BASE_URL });
     firebase.initializeApp(firebaseConfig);
-    this.provider = new firebase.auth.GithubAuthProvider();
-    this.provider.addScope('repo');
+    this._provider = new firebase.auth.GithubAuthProvider();
+    this._provider.addScope('repo');
   }
 
   private toGitHubResponse<T>(res: AxiosResponse): I.GitHubAPIResponse<T> {
@@ -36,20 +37,20 @@ class GitHubCore {
   requestOAuth() {
     return firebase
       .auth()
-      .signInWithPopup(this.provider)
+      .signInWithPopup(this._provider)
       .then(({ credential }) => (credential as firebase.auth.OAuthCredential)?.accessToken);
   }
 
   setToken(token?: string) {
     if (token) {
-      this.api.defaults.headers.common['Authorization'] = `token ${token}`;
+      this._api.defaults.headers.common['Authorization'] = `token ${token}`;
     } else {
-      delete this.api.defaults.headers.common['Authorization'];
+      delete this._api.defaults.headers.common['Authorization'];
     }
   }
 
   hasToken() {
-    return !!this.api.defaults.headers.common['Authorization'];
+    return !!this._api.defaults.headers.common['Authorization'];
   }
 
   /**
@@ -57,7 +58,7 @@ class GitHubCore {
    * - API Reference: https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
    */
   async getUser() {
-    return this.toGitHubResponse<I.GitHubUser>(await this.api.get('/user'));
+    return this.toGitHubResponse<I.GitHubUser>(await this._api.get('/user'));
   }
 
   /**
@@ -68,7 +69,7 @@ class GitHubCore {
    */
   async getRepository(username: string, repository: string) {
     return this.toGitHubResponse<I.GitHubRepository>(
-      await this.api.get(`/repos/${username}/${repository}`),
+      await this._api.get(`/repos/${username}/${repository}`),
     );
   }
 
@@ -80,7 +81,7 @@ class GitHubCore {
    */
   async createRepository(repository: string, description: string) {
     return this.toGitHubResponse<I.GitHubRepository>(
-      await this.api.post(`/user/repos`, { name: repository, description }),
+      await this._api.post(`/user/repos`, { name: repository, description }),
     );
   }
 
@@ -93,7 +94,7 @@ class GitHubCore {
    */
   async getRef(username: string, repository: string, branch: string) {
     return this.toGitHubResponse<I.GitHubRef>(
-      await this.api.get(`/repos/${username}/${repository}/git/refs/heads/${branch}`),
+      await this._api.get(`/repos/${username}/${repository}/git/refs/heads/${branch}`),
     ).data.object.sha;
   }
 
@@ -106,7 +107,7 @@ class GitHubCore {
    */
   async getTree(username: string, repository: string, branch: string) {
     return this.toGitHubResponse<I.GitHubTree>(
-      await this.api.get(
+      await this._api.get(
         `/repos/${username}/${repository}/git/trees/heads/${branch}?recursive=true`,
       ),
     );
@@ -121,7 +122,7 @@ class GitHubCore {
    */
   async postTree(username: string, repository: string, tree: I.Ref[]) {
     return this.toGitHubResponse(
-      await this.api.post(`/repos/${username}/${repository}/git/trees`, { tree }),
+      await this._api.post(`/repos/${username}/${repository}/git/trees`, { tree }),
     );
   }
 
@@ -141,7 +142,7 @@ class GitHubCore {
     message: string,
   ) {
     return this.toGitHubResponse<I.GitHubCommit>(
-      await this.api.post(`/repos/${username}/${repository}/git/commits`, {
+      await this._api.post(`/repos/${username}/${repository}/git/commits`, {
         message,
         parents: [parent],
         tree,
@@ -158,7 +159,7 @@ class GitHubCore {
    */
   async getRepositoryContent(username: string, repository: string, path: string) {
     return this.toGitHubResponse<I.RepositoryContent>(
-      await this.api.get(`/repos/${username}/${repository}/contents/${path}`),
+      await this._api.get(`/repos/${username}/${repository}/contents/${path}`),
     );
   }
 
@@ -175,20 +176,15 @@ class GitHubCore {
     username: string,
     repository: string,
     path: string,
-    commit: {
-      message: string;
-      content: string;
-      branch?: string;
-      sha?: string;
-    },
+    content: string,
+    commit: I.Commit,
   ) {
-    return (
-      this.toGitHubResponse(
-        await this.api.put(`/repos/${username}/${repository}/contents/${path}`, commit),
-      ).status -
-        200 <=
-      1
-    ); // 200 or 201
+    return this.toGitHubResponse<I.GitHubCommit>(
+      await this._api.put(`/repos/${username}/${repository}/contents/${path}`, {
+        ...commit,
+        content,
+      }),
+    );
   }
 
   /**
@@ -203,15 +199,11 @@ class GitHubCore {
     username: string,
     repository: string,
     path: string,
-    commit: {
-      message: string;
-      branch?: string;
-      sha: string;
-    },
+    commit: I.HashRequiredCommit,
   ) {
     return (
       this.toGitHubResponse(
-        await this.api.delete(`/repos/${username}/${repository}/contents/${path}`, {
+        await this._api.delete(`/repos/${username}/${repository}/contents/${path}`, {
           data: commit,
         }),
       ).status === 200
@@ -219,4 +211,5 @@ class GitHubCore {
   }
 }
 
-export default new GitHubCore();
+import config from '@/firebase-config.json';
+export default new GitHubCore(config);

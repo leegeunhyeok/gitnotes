@@ -72,7 +72,7 @@ export interface GitHubRepository {
   default_branch: string;
 }
 
-export interface GitHubRefContent {
+export interface RepositoryContent {
   name: string;
   path: string;
   content: string;
@@ -118,4 +118,14 @@ export interface Ref {
   type: string;
   size: number;
   sha?: string;
+}
+
+export interface Commit {
+  message: string;
+  branch?: string;
+  sha?: string;
+}
+
+export interface HashRequiredCommit extends Commit {
+  sha: string;
 }
