@@ -28,7 +28,7 @@ export enum ActionTypes {
 }
 
 export interface Actions {
-  [ActionTypes.GITHUB_LOGIN](context: AugmentedActionContext): Promise<boolean>;
+  [ActionTypes.GITHUB_LOGIN](context: AugmentedActionContext): Promise<string>;
   [ActionTypes.TOKEN_VALIDATION](
     context: AugmentedActionContext,
     payload: string,
@@ -63,14 +63,10 @@ export interface Actions {
 }
 
 export const actions: ActionTree<State, State> & Actions = {
-  [ActionTypes.GITHUB_LOGIN]({ commit }) {
+  [ActionTypes.GITHUB_LOGIN]() {
     return core.github.login().then(token => {
-      if (token) {
-        commit(MutationTypes.SET_TOKEN, token);
-        return true;
-      } else {
-        return false;
-      }
+      if (!token) throw new GitNotesError('token not provided');
+      return token;
     });
   },
   [ActionTypes.TOKEN_VALIDATION](_, token) {
@@ -129,6 +125,7 @@ export const actions: ActionTree<State, State> & Actions = {
   [ActionTypes.LOAD_USER]({ commit }) {
     return core.getUserFromDB().then(user => {
       if (!user) false;
+      core.initUser(user);
       commit(MutationTypes.SET_LOGIN, user.login);
       commit(MutationTypes.SET_NAME, user.name);
       commit(MutationTypes.SET_BIO, user.bio);

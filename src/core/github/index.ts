@@ -8,6 +8,7 @@ import {
   GitHubUser,
   GitHubRepository,
   GitHubCommit,
+  GitHubContent,
   GitHubRef,
   GitHubTree,
   RepositoryContent,
@@ -175,7 +176,7 @@ class GitHubCore {
     content: string,
     commit: Commit,
   ) {
-    return this.toGitHubResponse<GitHubCommit>(
+    return this.toGitHubResponse<GitHubContent>(
       await this._api.put(`/repos/${username}/${repository}/contents/${path}`, {
         ...commit,
         content,

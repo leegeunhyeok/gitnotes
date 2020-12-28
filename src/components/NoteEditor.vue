@@ -61,7 +61,8 @@ import { defineComponent, SetupContext, ref } from 'vue';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import Button from '@/components/Button.vue';
-import { Tag, EmptyTag } from '@/core';
+import { EmptyTag } from '@/core';
+import { Tag } from '@/core/types';
 
 interface EditorProps {
   initialContent?: string;

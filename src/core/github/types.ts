@@ -55,23 +55,36 @@ export interface GitHubUser {
 export interface GitHubCommit {
   sha: string;
   node_id: string;
-  url: string;
   html_url: string;
-  author: {
-    name: string;
-    email: string;
-    date: string;
+  commit: {
+    url: string;
+    html_url: string;
+    author: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    committer: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    tree: {
+      sha: string;
+      url: string;
+    };
+    message: string;
   };
-  committer: {
+}
+
+export interface GitHubContent {
+  content: {
     name: string;
-    email: string;
-    date: string;
-  };
-  tree: {
+    path: string;
     sha: string;
     url: string;
   };
-  message: string;
+  commit: GitHubCommit;
 }
 
 export interface GitHubRepository {
@@ -94,14 +107,6 @@ export interface RepositoryContent {
   download_url: string;
   type: string;
   commit: GitHubCommit;
-}
-
-export interface GitHubRepository {
-  name: string;
-  full_name: string;
-  html_url: string;
-  description: string;
-  default_branch: string;
 }
 
 export interface GitHubRef {
