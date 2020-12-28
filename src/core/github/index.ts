@@ -2,18 +2,19 @@ import axios, { AxiosInstance, AxiosResponse } from 'axios';
 import firebase from 'firebase/app';
 import 'firebase/auth';
 import 'firebase/analytics';
-import * as I from '@/core/github/interface';
-export { I as GitHubCoreInterface };
-
-interface FirebaseConfig {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
-  measurementId: string;
-}
+import {
+  FirebaseConfig,
+  GitHubAPIResponse,
+  GitHubUser,
+  GitHubRepository,
+  GitHubCommit,
+  GitHubRef,
+  GitHubTree,
+  RepositoryContent,
+  Commit,
+  HashRequiredCommit,
+  Ref,
+} from '@/core/github/types';
 
 class GitHubCore {
   static BASE_URL = 'https://api.github.com';
@@ -27,7 +28,7 @@ class GitHubCore {
     this._provider.addScope('repo');
   }
 
-  private toGitHubResponse<T>(res: AxiosResponse): I.GitHubAPIResponse<T> {
+  private toGitHubResponse<T>(res: AxiosResponse): GitHubAPIResponse<T> {
     return {
       data: res.data || null,
       status: res.status,
@@ -58,7 +59,7 @@ class GitHubCore {
    * - API Reference: https://docs.github.com/en/rest/reference/users#get-the-authenticated-user
    */
   async getUser() {
-    return this.toGitHubResponse<I.GitHubUser>(await this._api.get('/user'));
+    return this.toGitHubResponse<GitHubUser>(await this._api.get('/user'));
   }
 
   /**
@@ -68,7 +69,7 @@ class GitHubCore {
    * @param description Repository description
    */
   async getRepository(username: string, repository: string) {
-    return this.toGitHubResponse<I.GitHubRepository>(
+    return this.toGitHubResponse<GitHubRepository>(
       await this._api.get(`/repos/${username}/${repository}`),
     );
   }
@@ -80,7 +81,7 @@ class GitHubCore {
    * @param description Repository description
    */
   async createRepository(repository: string, description: string) {
-    return this.toGitHubResponse<I.GitHubRepository>(
+    return this.toGitHubResponse<GitHubRepository>(
       await this._api.post(`/user/repos`, { name: repository, description }),
     );
   }
@@ -93,7 +94,7 @@ class GitHubCore {
    * @param branch Target branch
    */
   async getRef(username: string, repository: string, branch: string) {
-    return this.toGitHubResponse<I.GitHubRef>(
+    return this.toGitHubResponse<GitHubRef>(
       await this._api.get(`/repos/${username}/${repository}/git/refs/heads/${branch}`),
     ).data.object.sha;
   }
@@ -106,7 +107,7 @@ class GitHubCore {
    * @param branch
    */
   async getTree(username: string, repository: string, branch: string) {
-    return this.toGitHubResponse<I.GitHubTree>(
+    return this.toGitHubResponse<GitHubTree>(
       await this._api.get(
         `/repos/${username}/${repository}/git/trees/heads/${branch}?recursive=true`,
       ),
@@ -120,7 +121,7 @@ class GitHubCore {
    * @param repository Repository name
    * @param tree Git reference tree
    */
-  async postTree(username: string, repository: string, tree: I.Ref[]) {
+  async postTree(username: string, repository: string, tree: Ref[]) {
     return this.toGitHubResponse(
       await this._api.post(`/repos/${username}/${repository}/git/trees`, { tree }),
     );
@@ -134,14 +135,8 @@ class GitHubCore {
    * @param tree Git reference tree
    * @param message Commit message
    */
-  async commit(
-    username: string,
-    repository: string,
-    parent: string,
-    tree: I.Ref[],
-    message: string,
-  ) {
-    return this.toGitHubResponse<I.GitHubCommit>(
+  async commit(username: string, repository: string, parent: string, tree: Ref[], message: string) {
+    return this.toGitHubResponse<GitHubCommit>(
       await this._api.post(`/repos/${username}/${repository}/git/commits`, {
         message,
         parents: [parent],
@@ -158,7 +153,7 @@ class GitHubCore {
    * @param path File path
    */
   async getRepositoryContent(username: string, repository: string, path: string) {
-    return this.toGitHubResponse<I.RepositoryContent>(
+    return this.toGitHubResponse<RepositoryContent>(
       await this._api.get(`/repos/${username}/${repository}/contents/${path}`),
     );
   }
@@ -177,9 +172,9 @@ class GitHubCore {
     repository: string,
     path: string,
     content: string,
-    commit: I.Commit,
+    commit: Commit,
   ) {
-    return this.toGitHubResponse<I.GitHubCommit>(
+    return this.toGitHubResponse<GitHubCommit>(
       await this._api.put(`/repos/${username}/${repository}/contents/${path}`, {
         ...commit,
         content,
@@ -199,7 +194,7 @@ class GitHubCore {
     username: string,
     repository: string,
     path: string,
-    commit: I.HashRequiredCommit,
+    commit: HashRequiredCommit,
   ) {
     return (
       this.toGitHubResponse(
