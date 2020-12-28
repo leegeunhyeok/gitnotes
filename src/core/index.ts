@@ -87,6 +87,15 @@ export class GitNotesCore {
     return `${GitNotesCore.COMMIT_PREFIX} ${this.getTimestamp()} - ${message.join(' ')}`;
   }
 
+  private toValidFilename(name: string) {
+    return (
+      name
+        // eslint-disable-next-line no-useless-escape
+        .replace(/[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"ㄱ-ㅎ]/gi, '')
+        .replace(/[^a-zA-Z0-9가-힣]/, '_')
+    );
+  }
+
   private getGitContent(path: string) {
     const { login, repository } = this._user;
     return this.github.getRepositoryContent(login, repository, path).then(res => {
@@ -222,7 +231,7 @@ export class GitNotesCore {
           this._metaHash = data.sha;
           return meta;
         })
-      : this.saveMeta([], [])
+      : this.saveMeta()
     ).then(meta => {
       this._meta = meta;
       this._init = true;
@@ -230,11 +239,11 @@ export class GitNotesCore {
     });
   }
 
-  saveMeta(tags: Tag[], notes: Note[]) {
+  saveMeta() {
     const metadata: GitNotesMeta = {
       version: pkg.version,
-      tags,
-      notes,
+      tags: this._meta.tags,
+      notes: this._meta.notes,
     };
 
     return this.putGitContent(GitNotesCore.META_FILE_PATH, JSON.stringify(metadata, null, 2), {
@@ -280,12 +289,13 @@ export class GitNotesCore {
         };
       });
 
-    targetTag.name = newTagName;
-    targetTag.color = newTagColor || targetTag.color;
-
     return this.moveGitContent([{ originPath: originTagMetaPath, targetPath: newTagMetaPath }])
       .then(() => this.moveGitContent(moveContents))
-      .then(() => this.saveMeta(this._meta.tags, this._meta.notes));
+      .then(() => {
+        targetTag.name = newTagName;
+        targetTag.color = newTagColor || targetTag.color;
+      })
+      .then(() => this.saveMeta());
   }
 
   deleteTag(tagId: string) {
@@ -294,21 +304,132 @@ export class GitNotesCore {
 
     const targetTag = this._meta.tags[targetTagIdx];
     const originTagBase = `${GitNotesCore.NOTES_DIRECTORY}/${targetTag.name}`;
+    const originTagPath = `${GitNotesCore.NOTES_DIRECTORY}/${targetTag.name}/.tag`;
 
     const moveContents = this._meta.notes
       .filter(note => note.tag === targetTag.id)
       .map(note => {
         const noteFileName = `${note.title}.md`;
-        note.tag = '';
+        note.tag = null;
         return {
           originPath: `${originTagBase}/${noteFileName}`,
           targetPath: `${noteFileName}`,
         };
       });
 
-    return this.moveGitContent(moveContents)
+    this.moveGitContent(moveContents)
+      .then(() => this.getGitContent(originTagPath))
+      .then(({ data }) =>
+        this.deleteGitContent(originTagPath, {
+          message: `Delete tag: ${targetTag.name} (Task: 1/2)`,
+          sha: data.sha,
+        }),
+      )
+      .then(() => this.getGitContent(originTagBase))
+      .then(({ data }) =>
+        this.deleteGitContent(originTagBase, {
+          message: `Delete tag: ${targetTag.name} (Task: 2/2)`,
+          sha: data.sha,
+        }),
+      )
       .then(() => this._meta.tags.splice(targetTagIdx, 1))
-      .then(() => this.saveMeta(this._meta.tags, this._meta.notes));
+      .then(() => this.saveMeta());
+  }
+
+  createNote(title: string, content: string, tagId?: string) {
+    let targetTag: Tag | null = null;
+    if (tagId) {
+      targetTag = this._meta.tags.find(tag => tag.id === tagId) || null;
+      if (!targetTag) throw new GitNotesError(`Tag ${tagId} not found`);
+    }
+
+    const noteData: Note = {
+      id: GitNotesCore.createId(),
+      tag: targetTag ? targetTag.id : targetTag,
+      title,
+      createdAt: +new Date(),
+      updatedAt: null,
+    };
+    const noteFilename = `${this.toValidFilename(noteData.title)}.md`;
+    const noteFilePath = `${GitNotesCore.NOTES_DIRECTORY}/${
+      targetTag ? `${targetTag.name}/${noteFilename}` : noteFilename
+    }`;
+
+    return this.putGitContent(noteFilePath, content, {
+      message: this.toCommitMessage('Write new note'),
+    })
+      .then(() => this._meta.notes.push(noteData))
+      .then(() => this.saveMeta());
+  }
+
+  updateNote(noteId: string, newTitle?: string, newContent?: string, newTagId?: string) {
+    const targetNoteIdx = this._meta.notes.findIndex(note => note.id === noteId);
+    if (!~targetNoteIdx) throw new GitNotesError(`targetNote ${noteId} not found`);
+
+    let targetTag: Tag | null = null;
+    if (newTagId) {
+      targetTag = this._meta.tags.find(tag => tag.id === newTagId) || null;
+      if (!targetTag) throw new GitNotesError(`Tag ${newTagId} not found`);
+    }
+
+    const targetNote = this._meta.notes[targetNoteIdx];
+    const originNoteFilename = `${this.toValidFilename(targetNote.title)}.md`;
+    const originNoteFilePath = `${GitNotesCore.NOTES_DIRECTORY}/${
+      targetTag ? `${targetTag.name}/${originNoteFilename}` : originNoteFilename
+    }`;
+    const newNoteFilename = newTitle ? `${this.toValidFilename(newTitle)}.md` : originNoteFilename;
+    const newNoteFilePath = `${GitNotesCore.NOTES_DIRECTORY}/${
+      targetTag ? `${targetTag.name}/${newNoteFilename}` : newNoteFilename
+    }`;
+
+    this.getGitContent(originNoteFilePath)
+      .then(({ data }) => {
+        const res = { content: newContent || data.content, sha: data.sha };
+        return originNoteFilePath !== newNoteFilePath
+          ? this.moveGitContent([
+              {
+                originPath: originNoteFilePath,
+                targetPath: newNoteFilePath,
+              },
+            ]).then(() => res)
+          : Promise.resolve(res);
+      })
+      .then(({ content, sha }) =>
+        this.putGitContent(newNoteFilePath, content, {
+          message: this.toCommitMessage('Update note'),
+          sha,
+        }),
+      )
+      .then(() => {
+        this._meta.notes[targetNoteIdx] = {
+          ...targetNote,
+          tag: targetTag ? targetTag.id : targetNote.tag,
+          title: newTitle ? newTitle : targetNote.title,
+          createdAt: targetNote.createdAt,
+          updatedAt: +new Date(),
+        };
+      })
+      .then(() => this.saveMeta());
+  }
+
+  deleteNote(noteId: string) {
+    const targetNoteIdx = this._meta.notes.findIndex(note => note.id === noteId);
+    if (!~targetNoteIdx) throw new GitNotesError(`Note ${noteId} not found`);
+
+    const targetNote = this._meta.notes[targetNoteIdx];
+    const targetNotePath = `${GitNotesCore.NOTES_DIRECTORY}/${this.toValidFilename(
+      targetNote.title,
+    )}.md`;
+
+    return this.getGitContent(targetNotePath)
+      .then(({ data }) =>
+        this.deleteGitContent(targetNotePath, {
+          message: `Delete note: ${targetNote.title} (Task: 1/1)`,
+          sha: data.sha,
+        }),
+      )
+      .then(() => this._meta.notes.splice(targetNoteIdx, 1))
+      .then(() => this.saveMeta());
   }
 }
 

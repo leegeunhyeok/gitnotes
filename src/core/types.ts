@@ -26,10 +26,10 @@ export interface Tag {
 
 export interface Note {
   id: string;
-  tag: string;
+  tag: string | null;
   title: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: number;
+  updatedAt: number | null;
 }
 
 export interface RaiseErrorConfig {
