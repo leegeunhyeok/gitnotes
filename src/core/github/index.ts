@@ -15,6 +15,7 @@ import {
   HashRequiredCommit,
   Ref,
 } from '@/core/github/types';
+export * as Types from '@/core/github/types';
 
 class GitHubCore {
   static BASE_URL = 'https://api.github.com';

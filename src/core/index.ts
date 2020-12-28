@@ -1,8 +1,8 @@
 import { v4 as uuidv4 } from 'uuid';
 import { encode, decode } from 'js-base64';
 import { GitNotesMeta, User, Profile, Note, Tag, RaiseErrorConfig } from '@/core/types';
-import GitHubCore, { GitHubCoreInterface } from '@/core/github';
-import GitNotesDB from '@/database';
+import GitHubCore, { Types as GitHubCoreTypes } from '@/core/github';
+import GitNotesDB from '@/core/database';
 import pkg from '~/package.json';
 
 export const initialMeta: GitNotesMeta = {
@@ -32,7 +32,7 @@ export class GitNotesCore {
   public static NOTES_FOLDER = 'notes';
   public static REPO_DESC = '🌈 GitNotes';
   private _db = GitNotesDB.getInstance();
-  private _refs: { sha: string; tree: GitHubCoreInterface.Ref[] } = { sha: '', tree: [] };
+  private _refs: { sha: string; tree: GitHubCoreTypes.Ref[] } = { sha: '', tree: [] };
   private _metaHash?: string;
   private _user: User = EMPTY_USER;
   private _init = false;
@@ -94,7 +94,7 @@ export class GitNotesCore {
   private putGitContent(
     path: string,
     content: string,
-    commitConfig: GitHubCoreInterface.Commit | GitHubCoreInterface.HashRequiredCommit,
+    commitConfig: GitHubCoreTypes.Commit | GitHubCoreTypes.HashRequiredCommit,
   ) {
     const { login, repository, branch } = this._user;
     return this.github.putRepositoryContent(login, repository, path, this.toContent(content), {
@@ -118,7 +118,7 @@ export class GitNotesCore {
       .then(() => this.updateGitTree());
   }
 
-  private deleteGitContent(path: string, commitConfig: GitHubCoreInterface.HashRequiredCommit) {
+  private deleteGitContent(path: string, commitConfig: GitHubCoreTypes.HashRequiredCommit) {
     const { login, repository, branch } = this._user;
     return this.github.deleteRepositoryContent(login, repository, path, {
       ...commitConfig,
