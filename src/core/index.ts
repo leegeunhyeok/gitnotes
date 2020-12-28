@@ -4,6 +4,7 @@ import { GitNotesMeta, User, Profile, Note, Tag, RaiseErrorConfig } from '@/core
 import GitHubCore, { Types as GitHubCoreTypes } from '@/core/github';
 import GitNotesDB from '@/core/database';
 import pkg from '~/package.json';
+export * as Types from '@/core/types';
 
 export const initialMeta: GitNotesMeta = {
   version: pkg.version,
@@ -19,7 +20,7 @@ export const EmptyTag: Tag = {
 
 const EMPTY_USER: User = { login: '', branch: '', repository: '', token: '' };
 
-class GitNotesError extends Error {
+export class GitNotesError extends Error {
   constructor(message: string) {
     super(message);
   }
@@ -185,9 +186,9 @@ export class GitNotesCore {
     await Promise.all([this._db.delete('user'), this._db.delete('tag'), this._db.delete('note')]);
   }
 
-  initUser(user: User) {
-    this.github.setToken(user.token);
-    this._user = user;
+  initUser(token: string) {
+    this.github.setToken(token);
+    return this.github.getUser().then(({ data }) => data);
   }
 
   initGit() {
@@ -362,9 +363,24 @@ export class GitNotesCore {
       .then(() => this.saveMeta());
   }
 
+  getNote (noteId: string) {
+    const targetNote = this._meta.notes.find(note => note.id === noteId);
+    if (!targetNote) throw new GitNotesError(`Note ${noteId} not found`);
+
+    const targetTag = this._meta.tags.find(tag => tag.id === targetNote.tag);
+    if (!targetTag) throw new GitNotesError(`Tag ${targetNote.tag} not found`);
+
+    const targetNoteFilename = `${this.toValidFilename(targetNote.title)}.md`;
+    const targetNoteFilePath = `${GitNotesCore.NOTES_DIRECTORY}/${
+      targetTag ? `${targetTag.name}/${targetNoteFilename}` : targetNoteFilename
+    }`;
+
+    return this.getGitContent(targetNoteFilePath).then(({ data }) => data.content);
+  }
+
   updateNote(noteId: string, newTitle?: string, newContent?: string, newTagId?: string) {
     const targetNoteIdx = this._meta.notes.findIndex(note => note.id === noteId);
-    if (!~targetNoteIdx) throw new GitNotesError(`targetNote ${noteId} not found`);
+    if (!~targetNoteIdx) throw new GitNotesError(`Note ${noteId} not found`);
 
     let targetTag: Tag | null = null;
     if (newTagId) {
@@ -382,7 +398,7 @@ export class GitNotesCore {
       targetTag ? `${targetTag.name}/${newNoteFilename}` : newNoteFilename
     }`;
 
-    this.getGitContent(originNoteFilePath)
+    return this.getGitContent(originNoteFilePath)
       .then(({ data }) => {
         const res = { content: newContent || data.content, sha: data.sha };
         return originNoteFilePath !== newNoteFilePath
