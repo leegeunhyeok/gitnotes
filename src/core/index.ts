@@ -27,12 +27,12 @@ class GitNotesError extends Error {
 
 export class GitNotesCore {
   private static instance: GitNotesCore | null = null;
-  public static COMMIT_PREFIX = 'GitNotes: ';
-  public static META_FILE = '.gitnotes';
-  public static NOTES_FOLDER = 'notes';
-  public static REPO_DESC = '🌈 GitNotes';
+  public static COMMIT_PREFIX = 'GitNotes';
+  public static META_FILE_PATH = '.gitnotes';
+  public static NOTES_DIRECTORY = 'notes';
   private _db = GitNotesDB.getInstance();
   private _refs: { sha: string; tree: GitHubCoreTypes.Ref[] } = { sha: '', tree: [] };
+  private _meta = initialMeta;
   private _metaHash?: string;
   private _user: User = EMPTY_USER;
   private _init = false;
@@ -83,6 +83,10 @@ export class GitNotesCore {
     return `${year}.${month}.${day} ${hour}:${minute}:${second}`;
   }
 
+  private toCommitMessage(...message: string[]) {
+    return `${GitNotesCore.COMMIT_PREFIX} ${this.getTimestamp()} - ${message.join(' ')}`;
+  }
+
   private getGitContent(path: string) {
     const { login, repository } = this._user;
     return this.github.getRepositoryContent(login, repository, path).then(res => {
@@ -103,18 +107,27 @@ export class GitNotesCore {
     });
   }
 
-  private moveGitContent(originPath: string, targetPath: string) {
+  private moveGitContent(move: { originPath: string; targetPath: string }[]) {
     this.isReady({ raiseError: true });
     const { login, repository } = this._user;
-    this.updateGitTree()
+    return this.updateGitTree()
       .then(() => {
-        this._refs.tree.forEach(ref => {
-          if (ref.path === originPath) ref.path = targetPath;
-          if (ref.type === 'tree') delete ref.sha;
+        move.forEach(m => {
+          const targetRef = this._refs.tree.find(ref => ref.path === m.originPath);
+          if (targetRef) targetRef.path = m.targetPath;
         });
+        this._refs.tree.forEach(ref => ref.type === 'tree' && delete ref.sha);
       })
       .then(() => this.github.postTree(login, repository, this._refs.tree))
-      .then(() => this.github.commit(login, repository, this._refs.sha, this._refs.tree, 'Move'))
+      .then(() =>
+        this.github.commit(
+          login,
+          repository,
+          this._refs.sha,
+          this._refs.tree,
+          this.toCommitMessage('@move'),
+        ),
+      )
       .then(() => this.updateGitTree());
   }
 
@@ -198,24 +211,23 @@ export class GitNotesCore {
   }
 
   loadMeta() {
-    const meta = this._refs.tree.find(ref => ref.path === GitNotesCore.META_FILE);
+    const meta = this._refs.tree.find(ref => ref.path === GitNotesCore.META_FILE_PATH);
 
-    if (meta) {
-      return this.getGitContent(GitNotesCore.META_FILE).then(({ data }) => {
-        const meta = JSON.parse(this.toData(data.content)) as GitNotesMeta;
-        this._init = true;
-        this._metaHash = data.sha;
-        return meta;
-      });
-    } else {
-      return this.saveMeta([], []);
-    }
-  }
-
-  createMeta() {
-    return this.putGitContent(GitNotesCore.META_FILE, JSON.stringify(initialMeta, null, 2), {
-      message: 'Hello, GitNotes!',
-    }).then(() => (this._init = true));
+    // Load metadata
+    // or
+    // save new metadata if not exist
+    return (meta
+      ? this.getGitContent(GitNotesCore.META_FILE_PATH).then(({ data }) => {
+          const meta = JSON.parse(this.toData(data.content)) as GitNotesMeta;
+          this._metaHash = data.sha;
+          return meta;
+        })
+      : this.saveMeta([], [])
+    ).then(meta => {
+      this._meta = meta;
+      this._init = true;
+      return meta;
+    });
   }
 
   saveMeta(tags: Tag[], notes: Note[]) {
@@ -225,8 +237,8 @@ export class GitNotesCore {
       notes,
     };
 
-    return this.putGitContent(GitNotesCore.META_FILE, JSON.stringify(metadata, null, 2), {
-      message: 'Hello, GitNotes!',
+    return this.putGitContent(GitNotesCore.META_FILE_PATH, JSON.stringify(metadata, null, 2), {
+      message: this.toCommitMessage('Save metadata'),
       ...(this._metaHash ? { sha: this._metaHash } : null),
     }).then(({ data }) => {
       this._metaHash = data.sha;
@@ -235,16 +247,68 @@ export class GitNotesCore {
   }
 
   createTag(tagName: string, color: string) {
-    const tagMeta = `${GitNotesCore.NOTES_FOLDER}/${tagName}/.tag`;
+    const tagMetaPath = `${GitNotesCore.NOTES_DIRECTORY}/${tagName}/.tag`;
     const tagData: Tag = {
       id: GitNotesCore.createId(),
       name: tagName,
       color,
     };
 
-    return this.putGitContent(tagMeta, JSON.stringify(tagData, null, 2), {
-      message: `GitNotes ${this.getTimestamp()}`,
-    }).then(() => tagData);
+    return this.putGitContent(tagMetaPath, JSON.stringify(tagData, null, 2), {
+      message: this.toCommitMessage(`'${tagName}' tag created`),
+    })
+      .then(() => this._meta.tags.push(tagData))
+      .then(() => this._meta);
+  }
+
+  updateTag(tagId: string, newTagName: string, newTagColor?: string) {
+    const targetTag = this._meta.tags.find(tag => tag.id === tagId);
+    if (!targetTag) throw new GitNotesError(`Tag ${tagId} not found`);
+
+    const originTagBase = `${GitNotesCore.NOTES_DIRECTORY}/${targetTag.name}`;
+    const originTagMetaPath = `${originTagBase}/.tag`;
+    const newTagBase = `${GitNotesCore.NOTES_DIRECTORY}/${newTagName}`;
+    const newTagMetaPath = `${newTagBase}/.tag`;
+
+    const moveContents = this._meta.notes
+      .filter(note => note.tag === targetTag.id)
+      .map(note => {
+        const noteFileName = `${note.title}.md`;
+        return {
+          originPath: `${originTagBase}/${noteFileName}`,
+          targetPath: `${newTagBase}/${noteFileName}`,
+        };
+      });
+
+    targetTag.name = newTagName;
+    targetTag.color = newTagColor || targetTag.color;
+
+    return this.moveGitContent([{ originPath: originTagMetaPath, targetPath: newTagMetaPath }])
+      .then(() => this.moveGitContent(moveContents))
+      .then(() => this.saveMeta(this._meta.tags, this._meta.notes));
+  }
+
+  deleteTag(tagId: string) {
+    const targetTagIdx = this._meta.tags.findIndex(tag => tag.id === tagId);
+    if (!~targetTagIdx) throw new GitNotesError(`Tag ${tagId} not found`);
+
+    const targetTag = this._meta.tags[targetTagIdx];
+    const originTagBase = `${GitNotesCore.NOTES_DIRECTORY}/${targetTag.name}`;
+
+    const moveContents = this._meta.notes
+      .filter(note => note.tag === targetTag.id)
+      .map(note => {
+        const noteFileName = `${note.title}.md`;
+        note.tag = '';
+        return {
+          originPath: `${originTagBase}/${noteFileName}`,
+          targetPath: `${noteFileName}`,
+        };
+      });
+
+    return this.moveGitContent(moveContents)
+      .then(() => this._meta.tags.splice(targetTagIdx, 1))
+      .then(() => this.saveMeta(this._meta.tags, this._meta.notes));
   }
 }
 
