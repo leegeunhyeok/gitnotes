@@ -39,8 +39,9 @@ export class GitNotesCore {
   private _init = false;
   public github = GitHubCore;
 
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  private constructor() {}
+  private constructor() {
+    this.prepareDatabase();
+  }
 
   public static getInstance() {
     if (!GitNotesCore.instance) {
@@ -164,15 +165,14 @@ export class GitNotesCore {
       .store('tag', {
         id: String,
         name: String,
-        color: String,
-        createdAt: Date,
+        color: String
       })
       .store('note', {
         id: String,
         title: String,
         content: String,
-        createdAt: Date,
-        updatedAt: Date,
+        createdAt: Number,
+        updatedAt: Number,
       })
       .version(1);
   }
@@ -186,9 +186,9 @@ export class GitNotesCore {
     await Promise.all([this._db.delete('user'), this._db.delete('tag'), this._db.delete('note')]);
   }
 
-  initUser(token: string) {
-    this.github.setToken(token);
-    return this.github.getUser().then(({ data }) => data);
+  initUser(user: User) {
+    this.github.setToken(user.token);
+    this._user = user;
   }
 
   initGit() {
@@ -251,7 +251,7 @@ export class GitNotesCore {
       message: this.toCommitMessage('Save metadata'),
       ...(this._metaHash ? { sha: this._metaHash } : null),
     }).then(({ data }) => {
-      this._metaHash = data.sha;
+      this._metaHash = data.content.sha;
       return metadata;
     });
   }
@@ -323,7 +323,7 @@ export class GitNotesCore {
       .then(({ data }) =>
         this.deleteGitContent(originTagPath, {
           message: `Delete tag: ${targetTag.name} (Task: 1/2)`,
-          sha: data.sha,
+          sha: data.sha
         }),
       )
       .then(() => this.getGitContent(originTagBase))

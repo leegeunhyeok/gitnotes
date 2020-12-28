@@ -89,18 +89,17 @@ export default defineComponent({
           bio: store.state.bio,
           photo: store.state.photo,
           theme: store.state.theme,
-          token: store.state.token,
           repository: store.state.repository,
           branch: store.state.branch,
+          token: store.state.token,
         })
         .then(() => {
           done.value = true;
           return Promise.all([
             createNewRepository.value &&
               (async () => {
-                await core.createMeta(store.state.login, store.state.repository, store.state.token);
-                await store.dispatch(ActionTypes.GIT_INIT, undefined);
-                await core.putNote('GitNotes 시작하기', '# GitNotes 시작하기');
+                await core.loadMeta();
+                await core.createNote('GitNotes 시작하기', '# GitNotes 시작하기');
               })(),
             new Promise(resolve => setTimeout(resolve, 2000)),
           ]).then(() => {
