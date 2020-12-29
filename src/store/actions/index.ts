@@ -1,9 +1,8 @@
-import core, { GitNotesMeta, GitNotesCore } from '@/core';
-import GithubAPI from '@/apis/github';
+import core, { GitNotesError, Types as CoreTypes } from '@/core';
+import { Types as GitHubTypes } from '@/core/github';
 import { ActionTree, ActionContext } from 'vuex';
 import { State } from '@/store/state';
 import { Mutations, MutationTypes } from '@/store/mutations';
-import { Repository, RepositoryFileContent, User } from '@/interfaces/github';
 
 type AugmentedActionContext = {
   commit<K extends keyof Mutations>(
@@ -13,61 +12,133 @@ type AugmentedActionContext = {
 } & Omit<ActionContext<State, State>, 'commit'>;
 
 export enum ActionTypes {
-  PREPARE_DATABASE = 'PREPARE_DATABASE',
-  LOAD_USER = 'LOAD_USER',
-  GET_PROFILE = 'GET_PROFILE',
+  // via GitHub APIs
+  GITHUB_LOGIN = 'GIHUB_LOGIN',
   TOKEN_VALIDATION = 'TOKEN_VALIDATION',
+  GET_PROFILE = 'GET_PROFILE',
   GET_REPOSITORY = 'GET_REPOSITORY',
-  GIT_INIT = 'GIT_INIT',
   CREATE_REPOSITORY = 'CREATE_REPOSITORY',
   LOAD_METADATA = 'LOAD_METADATA',
   SAVE_METADATA = 'SAVE_METADATA',
-  GET_NOTE_CONTENT = 'GET_NOTE_CONTENT',
-  PUT_NOTE_CONTENT = 'PUT_NOTE_CONTENT',
+  GET_NOTE = 'GET_NOTE',
+  ADD_NOTE = 'ADD_NOTE',
+  PUT_NOTE = 'PUT_NOTE',
   DELETE_NOTE = 'DELETE_NOTE',
+  // defaults
+  LOAD_USER = 'LOAD_USER',
+  SAVE_USER = 'SAVE_USER',
+  CLEAR_USER = 'CLEAR_USER',
 }
 
 export interface Actions {
-  [ActionTypes.PREPARE_DATABASE](context: AugmentedActionContext): void;
-  [ActionTypes.LOAD_USER](context: AugmentedActionContext): Promise<boolean>;
-  [ActionTypes.GET_PROFILE](context: AugmentedActionContext, payload: string): Promise<User>;
-  [ActionTypes.TOKEN_VALIDATION](context: AugmentedActionContext, payload: string): Promise<User>;
+  [ActionTypes.GITHUB_LOGIN](context: AugmentedActionContext): Promise<string>;
+  [ActionTypes.TOKEN_VALIDATION](
+    context: AugmentedActionContext,
+    payload: string,
+  ): Promise<boolean>;
+  [ActionTypes.GET_PROFILE](
+    context: AugmentedActionContext,
+    payload: string,
+  ): Promise<GitHubTypes.GitHubUser>;
   [ActionTypes.GET_REPOSITORY](
     context: AugmentedActionContext,
     payload: { username: string; repositoryName: string },
-  ): Promise<Repository>;
-  [ActionTypes.GIT_INIT](context: AugmentedActionContext): Promise<void>;
+  ): Promise<GitHubTypes.GitHubRepository>;
   [ActionTypes.CREATE_REPOSITORY](
     context: AugmentedActionContext,
     payload: string,
-  ): Promise<Repository>;
+  ): Promise<GitHubTypes.GitHubRepository>;
   [ActionTypes.LOAD_METADATA](context: AugmentedActionContext): Promise<void>;
   [ActionTypes.SAVE_METADATA](
     context: AugmentedActionContext,
-    payload: GitNotesMeta,
-  ): Promise<GitNotesMeta>;
-  [ActionTypes.GET_NOTE_CONTENT](
+    payload: CoreTypes.GitNotesMeta,
+  ): Promise<CoreTypes.GitNotesMeta>;
+  [ActionTypes.GET_NOTE](context: AugmentedActionContext, payload: string): Promise<string>;
+  [ActionTypes.ADD_NOTE](
     context: AugmentedActionContext,
-    payload: { name: string; tagId?: string },
-  ): Promise<string>;
-  [ActionTypes.PUT_NOTE_CONTENT](
+    payload: { title: string; content: string; tagId?: string },
+  ): Promise<CoreTypes.GitNotesMeta>;
+  [ActionTypes.PUT_NOTE](
     context: AugmentedActionContext,
-    payload: { name: string; content: string; tagId?: string },
-  ): Promise<RepositoryFileContent>;
+    payload: { noteId: string; title?: string; content?: string; tagId?: string },
+  ): Promise<CoreTypes.GitNotesMeta>;
   [ActionTypes.DELETE_NOTE](
     context: AugmentedActionContext,
-    payload: { name: string; tagId?: string },
-  ): Promise<boolean>;
+    payload: string,
+  ): Promise<CoreTypes.GitNotesMeta>;
+  [ActionTypes.LOAD_USER](
+    context: AugmentedActionContext,
+  ): Promise<CoreTypes.User & CoreTypes.Profile>;
+  [ActionTypes.SAVE_USER](context: AugmentedActionContext): Promise<boolean>;
+  [ActionTypes.CLEAR_USER](context: AugmentedActionContext): Promise<boolean>;
 }
 
 export const actions: ActionTree<State, State> & Actions = {
-  [ActionTypes.PREPARE_DATABASE]({ commit }) {
-    core.prepareDatabase();
-    commit(MutationTypes.SET_DB_LOADED, true);
+  [ActionTypes.GITHUB_LOGIN]() {
+    return core.github.login().then(token => {
+      if (!token) throw new GitNotesError('token not provided');
+      return token;
+    });
+  },
+  [ActionTypes.TOKEN_VALIDATION](_, token) {
+    core.github.setToken(token);
+    return core.github.getUser().then(({ status }) => status === 200);
+  },
+  [ActionTypes.GET_PROFILE]({ commit }, token) {
+    core.github.setToken(token);
+    return core.github.getUser().then(({ data }) => {
+      commit(MutationTypes.SET_LOGIN, data.login);
+      commit(MutationTypes.SET_NAME, data.name || '');
+      commit(MutationTypes.SET_BIO, data.bio || '');
+      commit(MutationTypes.SET_PHOTO, data.avatar_url || '');
+      return data;
+    });
+  },
+  [ActionTypes.GET_REPOSITORY]({ commit }, { username, repositoryName }) {
+    return core.github.getRepository(username, repositoryName).then(({ data }) => {
+      commit(MutationTypes.SET_REPOSITORY, {
+        name: data.name,
+        branch: data.default_branch,
+      });
+      return data;
+    });
+  },
+  [ActionTypes.CREATE_REPOSITORY]({ commit }, repositoryName: string) {
+    return core.github.createRepository(repositoryName, 'GitNotes').then(({ data }) => {
+      commit(MutationTypes.SET_REPOSITORY, {
+        name: data.name,
+        branch: data.default_branch,
+      });
+      return data;
+    });
+  },
+  [ActionTypes.LOAD_METADATA]({ commit }) {
+    return core.loadMeta().then(meta => {
+      const { tags, notes } = meta;
+      commit(MutationTypes.SET_TAGS, tags);
+      commit(MutationTypes.SET_NOTES, notes);
+      commit(MutationTypes.APP_INITIALIZAED, undefined);
+    });
+  },
+  [ActionTypes.SAVE_METADATA]() {
+    return core.saveMeta();
+  },
+  [ActionTypes.GET_NOTE](_, noteId) {
+    return core.getNote(noteId);
+  },
+  [ActionTypes.ADD_NOTE](_, { title, content, tagId }) {
+    return core.createNote(title, content, tagId);
+  },
+  [ActionTypes.PUT_NOTE](_, { noteId, title, content, tagId }) {
+    return core.updateNote(noteId, title, content, tagId);
+  },
+  [ActionTypes.DELETE_NOTE](_, noteId) {
+    return core.deleteNote(noteId);
   },
   [ActionTypes.LOAD_USER]({ commit }) {
-    return core.getUserFromDB().then(user => {
-      if (!user) false;
+    return core.getUser().then(user => {
+      if (!user) null;
+      core.initUser(user);
       commit(MutationTypes.SET_LOGIN, user.login);
       commit(MutationTypes.SET_NAME, user.name);
       commit(MutationTypes.SET_BIO, user.bio);
@@ -77,73 +148,14 @@ export const actions: ActionTree<State, State> & Actions = {
         name: user.repository,
         branch: user.branch,
       });
-      return true;
-    });
-  },
-  [ActionTypes.GET_PROFILE]({ commit }, username) {
-    return GithubAPI.getUser(username).then(user => {
-      commit(MutationTypes.SET_LOGIN, user.login);
-      commit(MutationTypes.SET_NAME, user.name || '');
-      commit(MutationTypes.SET_BIO, user.bio || '');
-      commit(MutationTypes.SET_PHOTO, user.avatar_url || '');
       return user;
     });
   },
-  [ActionTypes.TOKEN_VALIDATION](_, token) {
-    return GithubAPI.me(token);
+  [ActionTypes.SAVE_USER]({ state }) {
+    const { login, name, bio, photo, repository, branch, token } = state;
+    return core.saveUser({ login, name, bio, photo, repository, branch, token, theme: '' });
   },
-  [ActionTypes.GIT_INIT]({ state, commit }) {
-    return core
-      .gitInit(state.login, state.repository, state.branch, state.token)
-      .then(() => commit(MutationTypes.GIT_INITIALIZAED, undefined));
-  },
-  [ActionTypes.GET_REPOSITORY]({ commit }, { username, repositoryName }) {
-    return GithubAPI.getRepository(username, repositoryName).then(repository => {
-      commit(MutationTypes.SET_REPOSITORY, {
-        name: repository.name,
-        branch: repository.default_branch,
-      });
-      return repository;
-    });
-  },
-  [ActionTypes.CREATE_REPOSITORY]({ commit }, repositoryName: string) {
-    return GithubAPI.createRepository(repositoryName, GitNotesCore.REPO_DESC).then(repository => {
-      commit(MutationTypes.SET_REPOSITORY, {
-        name: repository.name,
-        branch: repository.default_branch,
-      });
-      return repository;
-    });
-  },
-  [ActionTypes.LOAD_METADATA]({ state, commit }) {
-    if (!state.gitInit) throw new Error('Git not initialized');
-    return core.loadMeta().then(meta => {
-      const { tags, notes } = meta;
-      commit(MutationTypes.SET_TAGS, tags);
-      commit(MutationTypes.SET_NOTES, notes);
-      commit(MutationTypes.APP_INITIALIZAED, undefined);
-    });
-  },
-  [ActionTypes.SAVE_METADATA]({ state }) {
-    if (!state.init) throw new Error('Application not initialized');
-    return core.saveMeta(state.theme, state.tags, state.notes);
-  },
-  [ActionTypes.GET_NOTE_CONTENT]({ state }, { name, tagId }) {
-    if (!state.init) throw new Error('Application not initialized');
-    let tag: string | undefined = '';
-    if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
-    return core.getNote(name, tag);
-  },
-  [ActionTypes.PUT_NOTE_CONTENT]({ state }, { name, content, tagId }) {
-    if (!state.init) throw new Error('Application not initialized');
-    let tag: string | undefined = '';
-    if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
-    return core.putNote(name, content, tag);
-  },
-  [ActionTypes.DELETE_NOTE]({ state }, { name, tagId }) {
-    if (!state.init) throw new Error('Application not initialized');
-    let tag: string | undefined = '';
-    if (tagId) tag = state.tags.find(tag => tag.id === tagId)?.id;
-    return core.deleteNote(name, tag).then(res => res.deleted);
+  [ActionTypes.CLEAR_USER]() {
+    return core.deleteUser();
   },
 };

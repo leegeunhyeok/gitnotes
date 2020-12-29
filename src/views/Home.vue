@@ -25,7 +25,7 @@
         :title="note.title"
         :tag="note.tag"
         :key="note.id"
-        @click="getNoteContent(note)"
+        @click="getNoteContent(note.id)"
       />
     </main>
     <!-- Notes -->
@@ -46,7 +46,7 @@ import { useRouter } from 'vue-router';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import { ActionTypes } from '@/store/actions';
-import { Note as NoteModel, Tag } from '@/core';
+import { Types as CoreTypes } from '@/core';
 import Button from '@/components/Button.vue';
 import Profile from '@/components/Profile.vue';
 import Note from '@/components/Note.vue';
@@ -70,80 +70,80 @@ export default defineComponent({
           name: 'Web',
           color: 'blue',
         },
-      ] as Tag[];
+      ] as CoreTypes.Tag[];
 
       return ([
         {
           id: 'test',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test2',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test3',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test4',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test5',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test6',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test7',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test8',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test8',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
         {
           id: 'test8',
           tag: 'tag_id',
           title: 'Sample',
-          createdAt: new Date(),
-          updatedAt: new Date(),
+          createdAt: +new Date(),
+          updatedAt: +new Date(),
         },
-      ] as NoteModel[]).map(note => {
+      ] as CoreTypes.Note[]).map(note => {
         return {
           ...note,
           ...(note.tag ? { tag: tags.find(tag => tag.id === note.tag) || note.tag } : null),
@@ -163,10 +163,8 @@ export default defineComponent({
       },
     );
 
-    const getNoteContent = (note: NoteModel & { tag: Tag | null }) => {
-      dispatch(ActionTypes.GET_NOTE_CONTENT, { name: note.title, tagId: '' }).then(noteContent => {
-        content.value = noteContent;
-      });
+    const getNoteContent = (id: string) => {
+      dispatch(ActionTypes.GET_NOTE, id).then(noteContent => (content.value = noteContent));
     };
 
     return {
@@ -228,10 +226,8 @@ export default defineComponent({
     $line-color: darken($gray, 5%);
     position: relative;
     padding: 0 1rem;
-    padding-bottom: 25px;
     margin-bottom: 1rem;
     border-bottom: 1px solid #e1e1e1;
-    box-sizing: content-box;
     @include grow(0.6s);
 
     & > button {
@@ -250,7 +246,8 @@ export default defineComponent({
 
     &__list {
       width: 100%;
-      max-height: 5rem;
+      padding: 1rem 0;
+      max-height: 2rem;
       overflow-x: auto;
       white-space: nowrap;
     }

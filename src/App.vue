@@ -17,7 +17,6 @@
 <script lang="ts">
 import { defineComponent, ref, computed } from 'vue';
 import store, { provideStore } from '@/store';
-import { ActionTypes } from '@/store/actions';
 import Controller from '@/services/notification';
 import Notification from '@/components/Notification.vue';
 import Loading from '@/components/Loading.vue';
@@ -27,7 +26,7 @@ const useNotification = () => {
   const message = ref('');
 
   // Notification event bind + state management
-  Controller.getInstance().register((event) => {
+  Controller.getInstance().register(event => {
     event.message !== null && (message.value = event.message);
     show.value = event.show;
   });
@@ -43,11 +42,7 @@ export default defineComponent({
     const { show, message } = useNotification();
     const isLoading = computed(() => store.state.loading);
     const appTheme = computed(() => store.state.theme);
-
-    // Application initialization
-    store.dispatch(ActionTypes.PREPARE_DATABASE);
-
-    return { show, message, isLoading, appTheme};
+    return { show, message, isLoading, appTheme };
   },
 });
 </script>

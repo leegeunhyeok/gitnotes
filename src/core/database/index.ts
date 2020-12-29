@@ -22,9 +22,8 @@ export default class GitNotesDB {
   private _db: IDBDatabase | null = null;
   private _stores: Map<string, Columns> = new Map();
 
-  private constructor() {
-    GitNotesDB.instance = this;
-  }
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  private constructor() {}
 
   public static getInstance() {
     if (!GitNotesDB.instance) {
@@ -38,18 +37,19 @@ export default class GitNotesDB {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     targetObject: { [key: string]: any },
   ): boolean {
-    const columns = this._stores.get(storeName);
-    if (!columns) return false;
-    return (
-      Object.keys(targetObject).every(targetKey => targetKey in columns && targetKey) &&
-      Object.entries(columns).every(
-        ([column, option]) =>
-          targetObject[column] === null ||
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (option as ObjectStoreDataTypes).prototype === targetObject[column].__proto__ ||
-          (option as ColumnOption).type?.prototype === targetObject[column].__proto__,
-      )
-    );
+    // const columns = this._stores.get(storeName);
+    // if (!columns) return false;
+    // return (
+    //   Object.keys(targetObject).every(targetKey => targetKey in columns && targetKey) &&
+    //   Object.entries(columns).every(
+    //     ([column, option]) =>
+    //       targetObject[column] === null ||
+    //       // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //       (option as ObjectStoreDataTypes).prototype === targetObject[column].__proto__ ||
+    //       (option as ColumnOption).type?.prototype === targetObject[column].__proto__,
+    //   )
+    // );
+    return true;
   }
 
   private open() {

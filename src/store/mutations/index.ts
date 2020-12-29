@@ -1,11 +1,10 @@
 import { MutationTree } from 'vuex';
 import { State } from '@/store/state';
-import { Tag, Note } from '@/core';
+import { Types as CoreTypes } from '@/core';
+import { initialMeta } from '../../core/index';
 
 export enum MutationTypes {
-  GIT_INITIALIZAED = 'GIT_INITIALIZAED',
   APP_INITIALIZAED = 'APP_INITIALIZAED',
-  SET_DB_LOADED = 'SET_DB_LOADED',
   SET_LOADING = 'SET_LOADING',
   SET_NOTES = 'SET_NOTES',
   SET_TAGS = 'SET_TAGS',
@@ -19,39 +18,31 @@ export enum MutationTypes {
 }
 
 export type Mutations<S = State> = {
-  [MutationTypes.GIT_INITIALIZAED](state: S): void;
   [MutationTypes.APP_INITIALIZAED](state: S): void;
-  [MutationTypes.SET_DB_LOADED](state: S, payload: boolean): void;
   [MutationTypes.SET_LOADING](state: S, payload: boolean): void;
-  [MutationTypes.SET_TAGS](state: S, payload: Tag[]): void;
-  [MutationTypes.SET_NOTES](state: S, payload: Note[]): void;
+  [MutationTypes.SET_TAGS](state: S, payload: CoreTypes.Tag[]): void;
+  [MutationTypes.SET_NOTES](state: S, payload: CoreTypes.Note[]): void;
   [MutationTypes.SET_LOGIN](state: S, payload: string): void;
   [MutationTypes.SET_NAME](state: S, payload: string): void;
   [MutationTypes.SET_BIO](state: S, payload: string): void;
   [MutationTypes.SET_PHOTO](state: S, payload: string): void;
   [MutationTypes.SET_TOKEN](state: S, payload: string): void;
-  [MutationTypes.RESET_USER](state: S): void;
   [MutationTypes.SET_REPOSITORY](state: S, payload: { name: string; branch: string }): void;
+  [MutationTypes.RESET_USER](state: S): void;
 };
 
 export const mutations: MutationTree<State> & Mutations = {
-  [MutationTypes.GIT_INITIALIZAED](state) {
-    state.gitInit = true;
-  },
   [MutationTypes.APP_INITIALIZAED](state) {
-    state.init = true;
-  },
-  [MutationTypes.SET_DB_LOADED](state, prepared) {
-    state.databasePrepared = prepared;
+    state.ready = true;
   },
   [MutationTypes.SET_LOADING](state, loading) {
     state.loading = loading;
   },
   [MutationTypes.SET_TAGS](state, tags) {
-    state.tags = tags;
+    state._meta.tags = tags;
   },
   [MutationTypes.SET_NOTES](state, notes) {
-    state.notes = notes;
+    state._meta.notes = notes;
   },
   [MutationTypes.SET_LOGIN](state, login: string) {
     state.login = login;
@@ -68,6 +59,10 @@ export const mutations: MutationTree<State> & Mutations = {
   [MutationTypes.SET_TOKEN](state, token: string) {
     state.token = token;
   },
+  [MutationTypes.SET_REPOSITORY](state, { name, branch }) {
+    state.repository = name;
+    state.branch = branch;
+  },
   [MutationTypes.RESET_USER](state) {
     state.login = '';
     state.name = '';
@@ -76,9 +71,6 @@ export const mutations: MutationTree<State> & Mutations = {
     state.repository = '';
     state.branch = '';
     state.token = '';
-  },
-  [MutationTypes.SET_REPOSITORY](state, { name, branch }) {
-    state.repository = name;
-    state.branch = branch;
+    state._meta = initialMeta;
   },
 };

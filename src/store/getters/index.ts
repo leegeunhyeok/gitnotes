@@ -1,6 +1,6 @@
 import { GetterTree } from 'vuex';
 import { State } from '@/store/state';
-import { GitNotesTheme, Note, Tag } from '@/core';
+import { Types as CoreTypes } from '@/core';
 
 interface UserBasic {
   name: string;
@@ -25,10 +25,10 @@ export enum GetterTypes {
 }
 
 export interface Getters<S = State> {
-  [GetterTypes.THEME](state: S): GitNotesTheme;
+  [GetterTypes.THEME](state: S): CoreTypes.GitNotesTheme;
   [GetterTypes.USER](state: S): UserBasic;
-  [GetterTypes.TAGS](state: S): Tag[];
-  [GetterTypes.NOTES](state: S): Note[];
+  [GetterTypes.TAGS](state: S): CoreTypes.Tag[];
+  [GetterTypes.NOTES](state: S): CoreTypes.Note[];
   [GetterTypes.SUMMARY](state: S): NoteSummary;
   [GetterTypes.APPLICATION_INITIALIZED](state: S): boolean;
   [GetterTypes.USER_STATE_AVAILABLE](state: S): boolean;
@@ -42,17 +42,17 @@ export const getters: GetterTree<State, State> & Getters = {
   [GetterTypes.USER]({ login, name, bio, photo }) {
     return { login, name, bio, photo };
   },
-  [GetterTypes.TAGS]({ tags }) {
-    return tags;
+  [GetterTypes.TAGS]({ _meta }) {
+    return _meta.tags;
   },
-  [GetterTypes.NOTES]({ notes }) {
-    return notes;
+  [GetterTypes.NOTES]({ _meta }) {
+    return _meta.notes;
   },
-  [GetterTypes.SUMMARY]({ tags, notes }) {
-    return { tagCount: tags.length, noteCount: notes.length };
+  [GetterTypes.SUMMARY]({ _meta }) {
+    return { tagCount: _meta.tags.length, noteCount: _meta.notes.length };
   },
-  [GetterTypes.APPLICATION_INITIALIZED]({ init }) {
-    return init;
+  [GetterTypes.APPLICATION_INITIALIZED]({ ready }) {
+    return ready;
   },
   [GetterTypes.USER_STATE_AVAILABLE](state) {
     return !!(state.name && state.token);

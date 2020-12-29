@@ -1,51 +1,10 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { v4 as uuidv4 } from 'uuid';
 import { encode, decode } from 'js-base64';
-import GithubAPI from '@/apis/github';
-import GitNotesDB from '@/database';
+import { GitNotesMeta, User, Profile, Note, Tag, RaiseErrorConfig, ReplaceFileName } from '@/core/types';
+import GitHubCore, { Types as GitHubCoreTypes } from '@/core/github';
+import GitNotesDB from '@/core/database';
+export * as Types from '@/core/types';
 import pkg from '~/package.json';
-import { Ref } from '@/interfaces/github';
-
-export interface GitNotesMeta {
-  version: string;
-  tags: Tag[];
-  notes: Note[];
-}
-
-export interface User {
-  login: string;
-  name: string;
-  bio: string;
-  photo: string;
-  theme: string;
-  token: string;
-  repository: string;
-  branch: string;
-}
-
-export interface Tag {
-  id: string;
-  name: string;
-  color: string;
-}
-
-export interface Note {
-  id: string;
-  tag: string;
-  title: string;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export type GitNotesTheme =
-  | 'red'
-  | 'pink'
-  | 'orange'
-  | 'yellow'
-  | 'green'
-  | 'blue'
-  | 'purple'
-  | 'black';
 
 export const initialMeta: GitNotesMeta = {
   version: pkg.version,
@@ -59,7 +18,9 @@ export const EmptyTag: Tag = {
   color: 'empty',
 };
 
-class GitNotesError extends Error {
+const EMPTY_USER: User = { login: '', branch: '', repository: '', token: '' };
+
+export class GitNotesError extends Error {
   constructor(message: string) {
     super(message);
   }
@@ -67,21 +28,19 @@ class GitNotesError extends Error {
 
 export class GitNotesCore {
   private static instance: GitNotesCore | null = null;
-  public static COMMIT_PREFIX = 'GitNotes: ';
-  public static META_FILE = '.gitnotes';
-  public static NOTES_FOLDER = 'notes';
-  public static REPO_DESC = '🌈 GitNotes';
+  public static COMMIT_PREFIX = 'GitNotes';
+  public static META_FILE_PATH = '.gitnotes';
+  public static NOTES_DIRECTORY = 'notes';
   private _db = GitNotesDB.getInstance();
-  private _refs: { sha: string; tree: Ref[] } = { sha: '', tree: [] };
-  private _lastCommit?: string;
+  private _refs: { sha: string; tree: GitHubCoreTypes.Ref[] } = { sha: '', tree: [] };
+  private _meta = initialMeta;
   private _metaHash?: string;
-  private _username?: string;
-  private _repository?: string;
-  private _branch?: string;
+  private _user: User = EMPTY_USER;
   private _init = false;
+  public github = GitHubCore;
 
   private constructor() {
-    GitNotesCore.instance = this;
+    this.prepareDatabase();
   }
 
   public static getInstance() {
@@ -93,6 +52,20 @@ export class GitNotesCore {
 
   public static createId() {
     return uuidv4();
+  }
+
+  private toContent(data: string) {
+    return encode(data);
+  }
+
+  private toData(content: string) {
+    return decode(content);
+  }
+
+  private isReady(config?: RaiseErrorConfig) {
+    const isReady = this._user.token && this._init && this._refs.tree.length > 0;
+    if (!isReady && config?.raiseError) throw new GitNotesError('Core not ready');
+    return isReady;
   }
 
   private getTimestamp(from?: Date) {
@@ -112,6 +85,79 @@ export class GitNotesCore {
     return `${year}.${month}.${day} ${hour}:${minute}:${second}`;
   }
 
+  private toCommitMessage(...message: string[]) {
+    return `${GitNotesCore.COMMIT_PREFIX} ${this.getTimestamp()} - ${message.join(' ')}`;
+  }
+
+  private toValidFilename(name: string) {
+    return (
+      name
+        // eslint-disable-next-line no-useless-escape
+        .replace(/[\{\}\[\]\/?.,;:|\)*~`!^\-_+<>@\#$%&\\\=\(\'\"ㄱ-ㅎ]/gi, '')
+        .replace(/[^a-zA-Z0-9가-힣]/, '_')
+    );
+  }
+
+  private getGitContent(path: string) {
+    const { login, repository } = this._user;
+    return this.github.getRepositoryContent(login, repository, path).then(res => {
+      res.data.content = this.toData(res.data.content);
+      return res;
+    });
+  }
+
+  private putGitContent(
+    path: string,
+    content: string,
+    commitConfig: GitHubCoreTypes.Commit | GitHubCoreTypes.HashRequiredCommit,
+  ) {
+    const { login, repository, branch } = this._user;
+    return this.github.putRepositoryContent(login, repository, path, this.toContent(content), {
+      ...commitConfig,
+      ...(branch ? { branch } : null),
+    });
+  }
+
+  private moveGitContent(originPath: string, targetPath: string, filename: ReplaceFileName[]) {
+    this.isReady({ raiseError: true });
+    const { login, repository } = this._user;
+    return this.updateGitTree()
+      .then(() => {
+        this._refs.tree.forEach(ref => {
+          if (ref.path === originPath && ref.type === 'tree') ref.path = targetPath;
+          if (ref.path.startsWith(originPath)) {
+            filename.forEach((file) => {
+              if (typeof file === 'string') {
+                if (ref.path === `${originPath}/${file}`) ref.path = `${targetPath}/${file}`;
+              } else {
+                if (ref.path === `${originPath}/${file.origin}`) ref.path = `${targetPath}/${file.new}`;
+              }
+            });
+          }
+        });
+      })
+      .then(() => this.github.postTree(login, repository, this._refs.tree))
+      .then(({ data }) => data.sha)
+      .then((treeHash) =>
+        this.github.commit(
+          login,
+          repository,
+          this._refs.sha,
+          treeHash,
+          this.toCommitMessage('@move'),
+        ),
+      )
+      .then(() => this.updateGitTree());
+  }
+
+  private deleteGitContent(path: string, commitConfig: GitHubCoreTypes.HashRequiredCommit) {
+    const { login, repository, branch } = this._user;
+    return this.github.deleteRepositoryContent(login, repository, path, {
+      ...commitConfig,
+      ...(branch ? { branch } : null),
+    });
+  }
+
   prepareDatabase() {
     this._db
       .store('user', {
@@ -127,15 +173,14 @@ export class GitNotesCore {
       .store('tag', {
         id: String,
         name: String,
-        color: String,
-        createdAt: Date,
+        color: String
       })
       .store('note', {
         id: String,
         title: String,
         content: String,
-        createdAt: Date,
-        updatedAt: Date,
+        createdAt: Number,
+        updatedAt: Number,
       })
       .version(1);
   }
@@ -143,207 +188,262 @@ export class GitNotesCore {
   async reset() {
     this._refs.sha = '';
     this._refs.tree = [];
-    this._lastCommit = undefined;
-    this._username = undefined;
-    this._repository = undefined;
-    this._branch = undefined;
+    this._user = EMPTY_USER;
     this._init = false;
+    this.github.setToken(); // clear
     await Promise.all([this._db.delete('user'), this._db.delete('tag'), this._db.delete('note')]);
   }
 
-  async gitInit(username: string, repositoryName: string, branch: string, token: string) {
-    GithubAPI.setPersonalAccessToken(token);
-    await this.updateGitTree(username, repositoryName, branch);
-    this._username = username;
-    this._repository = repositoryName;
-    this._branch = branch;
+  initUser(user: User) {
+    this.github.setToken(user.token);
+    this._user = user;
   }
 
-  async updateGitTree(username: string, repositoryName: string, branch: string) {
-    this._refs = await GithubAPI.getTree(username, repositoryName, branch);
-    this._lastCommit = this._refs.sha;
+  initGit() {
+    return this.updateGitTree();
   }
 
-  getUserFromDB() {
-    return this._db.select<User>('user').then(users => users[0]);
+  async updateGitTree() {
+    const { login, repository, branch } = this._user;
+    const { data } = await this.github.getTree(login, repository, branch);
+    this._refs = {
+      sha: data.sha,
+      tree: data.tree,
+    };
   }
 
-  saveUser(user: User) {
-    return this._db.insert<User>('user', user);
+  getUser() {
+    return this._db.select<User & Profile>('user').then(users => users[0]);
   }
 
-  updateUser(user: User) {
+  deleteUser () {
+    return this._db.delete('user').then(affected => affected > 0);
+  }
+
+  saveUser(user: User & Profile) {
+    return this._db.insert<User & Profile>('user', user).then(() => true);
+  }
+
+  updateUser(user: User & Profile) {
     return this._db
-      .update<User>('user', user, {
+      .update<User & Profile>('user', user, {
         login: user.login,
       })
       .then(affectedRows => affectedRows > 0);
   }
 
-  createMeta(username: string, repositoryName: string, token: string) {
-    GithubAPI.setPersonalAccessToken(token);
-    return GithubAPI.putRepositoryContent({
-      user: username,
-      repository: repositoryName,
-      content: encode(JSON.stringify(initialMeta, null, 2)),
-      message: 'Hello, GitNotes!',
-      path: GitNotesCore.META_FILE,
-    }).then(() => (this._init = true));
-  }
-
   loadMeta() {
-    if (!this._refs.tree.length) throw new Error('Tree not initalized');
-    const meta = this._refs.tree.find(ref => ref.path === GitNotesCore.META_FILE);
-
-    if (meta) {
-      return GithubAPI.getRepositoryContent({
-        user: this._username!,
-        repository: this._repository!,
-        path: GitNotesCore.META_FILE,
-      }).then(({ data }) => {
-        const meta = JSON.parse(decode(data.content)) as GitNotesMeta;
-        this._init = true;
+    // Load metadata
+    // or
+    // save new metadata if not exist.
+    return this.updateGitTree().then(() => {
+      const meta = this._refs.tree.find(ref => ref.path === GitNotesCore.META_FILE_PATH);
+      if (!meta) throw new Error('Metadata not found (maybe this repository is empty)');
+      return this.getGitContent(GitNotesCore.META_FILE_PATH).then(({ data }) => {
+        const meta = JSON.parse(data.content) as GitNotesMeta;
         this._metaHash = data.sha;
         return meta;
       });
-    } else {
-      return this.saveMeta([], []);
-    }
+    })
+      .catch(() => this.saveMeta())
+      .then(meta => {
+        this._meta = meta;
+        this._init = true;
+        return meta;
+      });
   }
 
-  saveMeta(tags: Tag[], notes: Note[]) {
+  saveMeta() {
     const metadata: GitNotesMeta = {
       version: pkg.version,
-      tags,
-      notes,
+      tags: this._meta.tags,
+      notes: this._meta.notes,
     };
 
-    return GithubAPI.putRepositoryContent({
-      message: GitNotesCore.COMMIT_PREFIX + 'Metadata saved',
-      content: encode(JSON.stringify(metadata, null, 2)),
+    return this.putGitContent(GitNotesCore.META_FILE_PATH, JSON.stringify(metadata, null, 2), {
+      message: this.toCommitMessage('Save metadata'),
       ...(this._metaHash ? { sha: this._metaHash } : null),
-      user: this._username!,
-      repository: this._repository!,
-      path: GitNotesCore.META_FILE,
     }).then(({ data }) => {
-      this._metaHash = data.sha;
+      this._metaHash = data.content.sha;
       return metadata;
     });
   }
 
   createTag(tagName: string, color: string) {
-    const tagMeta = `${GitNotesCore.NOTES_FOLDER}/${tagName}/.tag`;
+    const tagMetaPath = `${GitNotesCore.NOTES_DIRECTORY}/${tagName}/.tag`;
     const tagData: Tag = {
       id: GitNotesCore.createId(),
       name: tagName,
       color,
     };
-    return this.putContent(tagMeta, JSON.stringify(tagData, null, 2)).then(() => tagData);
+
+    return this.putGitContent(tagMetaPath, JSON.stringify(tagData, null, 2), {
+      message: this.toCommitMessage(`'${tagName}' tag created`),
+    })
+      .then(() => this._meta.tags.push(tagData))
+      .then(() => this._meta);
   }
 
-  getNote(name: string, tagName?: string) {
-    if (!this._init) throw new Error('Core not initalized');
-    const noteFile = `${name}.md`;
-    const noteFilePath = [GitNotesCore.NOTES_FOLDER, tagName, noteFile].filter(x => x).join('/');
-    return this.getContent(noteFilePath).then(res => decode(res.data.content));
+  updateTag(tagId: string, newTagName: string, newTagColor?: string) {
+    const targetTag = this._meta.tags.find(tag => tag.id === tagId);
+    if (!targetTag) throw new GitNotesError(`Tag ${tagId} not found`);
+
+    const originTagBase = `${GitNotesCore.NOTES_DIRECTORY}/${targetTag.name}`;
+    const newTagBase = `${GitNotesCore.NOTES_DIRECTORY}/${newTagName}`;
+
+    const moveContents = this._meta.notes
+      .filter(note => note.tag === targetTag.id)
+      .map(({ title }) => `${this.toValidFilename(title)}.md`);
+
+    return  this.moveGitContent(originTagBase, newTagBase, ['.tag', ...moveContents])
+      .then(() => {
+        targetTag.name = newTagName;
+        targetTag.color = newTagColor || targetTag.color;
+      })
+      .then(() => this.saveMeta());
   }
 
-  async putNote(name: string, content: string, tagName?: string) {
-    if (!this._init) throw new Error('Core not initalized');
-    const noteFile = `${name}.md`;
-    const noteFilePath = [GitNotesCore.NOTES_FOLDER, tagName, noteFile].filter(x => x).join('/');
-    const existNote = this._refs.tree.find(ref => ref.path === noteFilePath);
+  deleteTag(tagId: string) {
+    const targetTagIdx = this._meta.tags.findIndex(tag => tag.id === tagId);
+    if (!~targetTagIdx) throw new GitNotesError(`Tag ${tagId} not found`);
 
-    const { data } = await this.putContent(
-      noteFilePath,
-      content,
-      existNote ? existNote.sha : undefined,
-    );
-    await this.updateGitTree(this._username!, this._repository!, this._branch!);
-    return data;
+    const targetTag = this._meta.tags[targetTagIdx];
+    const originTagBase = `${GitNotesCore.NOTES_DIRECTORY}/${targetTag.name}`;
+    const originTagPath = `${GitNotesCore.NOTES_DIRECTORY}/${targetTag.name}/.tag`;
+
+    const moveContents = this._meta.notes
+      .filter(note => note.tag === targetTag.id)
+      .map(({ title }) => `${this.toValidFilename(title)}.md`);
+
+
+    return this.getGitContent(originTagPath)
+      .then(({ data }) =>
+        this.deleteGitContent(originTagPath, {
+          message: `Delete tag: ${targetTag.name}`,
+          sha: data.sha
+        })
+      )
+      .then(() => this.moveGitContent(originTagBase, GitNotesCore.NOTES_DIRECTORY, moveContents))
+      .then(() => this._meta.tags.splice(targetTagIdx, 1))
+      .then(() => this.saveMeta());
   }
 
-  async moveNote(
-    originName: string,
-    originTagName?: string,
-    newName?: string,
-    newTagName?: string,
-  ) {
-    const noteFile = `${originName}.md`;
-    const originPath = [GitNotesCore.NOTES_FOLDER, originTagName, noteFile]
-      .filter(x => x)
-      .join('/');
-    const originNote = this._refs.tree.find(ref => ref.path === originPath);
+  createNote(title: string, content: string, tagId?: string) {
+    let targetTag: Tag | null = null;
+    if (tagId) {
+      targetTag = this._meta.tags.find(tag => tag.id === tagId) || null;
+      if (!targetTag) throw new GitNotesError(`Tag ${tagId} not found`);
+    }
 
-    if (!originNote) throw new GitNotesError(`${originPath} not found`);
-    const newFile = `${newName}.md`;
-    const targetPath = [GitNotesCore.NOTES_FOLDER, newTagName, newFile].filter(x => x).join('/');
+    const noteData: Note = {
+      id: GitNotesCore.createId(),
+      tag: targetTag ? targetTag.id : targetTag,
+      title,
+      createdAt: +new Date(),
+      updatedAt: null,
+    };
+    const noteFilename = `${this.toValidFilename(noteData.title)}.md`;
+    const noteFilePath = `${GitNotesCore.NOTES_DIRECTORY}/${
+      targetTag ? `${targetTag.name}/${noteFilename}` : noteFilename
+    }`;
 
-    return this.moveContent(originPath, targetPath);
+    return this.putGitContent(noteFilePath, content, {
+      message: this.toCommitMessage('Write new note'),
+    })
+      .then(() => this._meta.notes.push(noteData))
+      .then(() => this.saveMeta());
   }
 
-  async deleteNote(title: string, tagName?: string) {
-    const noteFile = `${title}.md`;
-    const noteFilePath = [GitNotesCore.NOTES_FOLDER, tagName, noteFile].filter(x => x).join('/');
-    const targetNote = this._refs.tree.find(ref => ref.path === noteFilePath);
+  getNote (noteId: string) {
+    const targetNote = this._meta.notes.find(note => note.id === noteId);
+    if (!targetNote) throw new GitNotesError(`Note ${noteId} not found`);
 
-    if (!targetNote) throw new GitNotesError(`${noteFilePath} not found`);
+    let targetTag: Tag | null = null;
+    if (targetNote.tag) {
+      targetTag = this._meta.tags.find(tag => tag.id === targetNote.tag) || null;
+      if (!targetTag) throw new GitNotesError(`Tag ${targetNote.tag} not found`);
+    }
 
-    return GithubAPI.deleteRepositoryContent({
-      path: noteFilePath,
-      sha: targetNote.sha as string,
-      message: 'DELETE',
-      user: this._username!,
-      repository: this._repository!,
-    });
+    const targetNoteFilename = `${this.toValidFilename(targetNote.title)}.md`;
+    const targetNoteFilePath = `${GitNotesCore.NOTES_DIRECTORY}/${
+      targetTag ? `${targetTag.name}/${targetNoteFilename}` : targetNoteFilename
+    }`;
+
+    return this.getGitContent(targetNoteFilePath).then(({ data }) => data.content);
   }
 
-  getContent(path: string) {
-    if (!this._init) throw new Error('Core not initalized');
-    return GithubAPI.getRepositoryContent({
-      user: this._username!,
-      repository: this._repository!,
-      path,
-    });
+  updateNote(noteId: string, newTitle?: string, newContent?: string, newTagId?: string) {
+    const targetNoteIdx = this._meta.notes.findIndex(note => note.id === noteId);
+    if (!~targetNoteIdx) throw new GitNotesError(`Note ${noteId} not found`);
+
+    let newTag: Tag | null = null;
+    let originTag: Tag | null = null;
+    if (newTagId) {
+      newTag = this._meta.tags.find(tag => tag.id === newTagId) || null;
+      if (!newTag) throw new GitNotesError(`Tag ${newTagId} not found`);
+    }
+
+    const originNote = this._meta.notes[targetNoteIdx];
+    if (originNote.tag) {
+      originTag = this._meta.tags.find(tag => tag.id === originNote.tag) || null;
+      if (!originTag) throw new GitNotesError(`Tag ${originNote.tag} not found`);
+    }
+
+    const updateTag = !!newTag;
+    const updateTitle = !!newTitle;
+    const updateContent = !!newContent;
+    const originPath = `${GitNotesCore.NOTES_DIRECTORY}${originTag ? `/${originTag.name}` : ''}`;
+    const newPath = `${GitNotesCore.NOTES_DIRECTORY}${newTag ? `/${newTag.name}` : ''}`;
+    const originNoteFilename = `${this.toValidFilename(originNote.title)}.md`;
+    const newNoteFilename = newTitle ? `${this.toValidFilename(newTitle)}.md` : originNoteFilename;
+    const originNoteFilePath = `${originPath}/${originNoteFilename}`
+    const newNoteFilePath = `${newPath}/${newNoteFilename}`;
+
+    return this.getGitContent(originNoteFilePath)
+      .then(({ data }) => {
+        const res = { content: newContent || data.content, sha: data.sha };
+        return (updateTag || updateTitle) ?
+          this.moveGitContent(originPath, newPath, [{ origin: originNoteFilename, new: newNoteFilename }])
+            .then(() => res)
+            : Promise.resolve(res);
+      })
+      .then(({ content, sha }) => 
+        updateContent ? 
+        this.putGitContent(newNoteFilePath, content, {
+          message: this.toCommitMessage('Update note'),
+          sha,
+        }).then(() => void 0) : Promise.resolve()
+      )
+      .then(() => {
+        this._meta.notes[targetNoteIdx] = {
+          ...originNote,
+          tag: newTag ? newTag.id : originNote.tag,
+          title: newTitle ? newTitle : originNote.title,
+          createdAt: originNote.createdAt,
+          updatedAt: +new Date(),
+        };
+      })
+      .then(() => this.saveMeta());
   }
 
-  putContent(path: string, content: string, sha?: string) {
-    if (!this._init) throw new Error('Core not initalized');
-    return GithubAPI.putRepositoryContent({
-      content: encode(content),
-      ...(sha ? { sha } : null),
-      message: `GitNotes ${this.getTimestamp()}`,
-      user: this._username!,
-      repository: this._repository!,
-      path,
-    });
-  }
+  deleteNote(noteId: string) {
+    const targetNoteIdx = this._meta.notes.findIndex(note => note.id === noteId);
+    if (!~targetNoteIdx) throw new GitNotesError(`Note ${noteId} not found`);
 
-  deleteContent(path: string, sha: string) {
-    return GithubAPI.deleteRepositoryContent({
-      sha,
-      message: `GitNotes ${this.getTimestamp()}`,
-      user: this._username!,
-      repository: this._repository!,
-      path,
-    });
-  }
+    const targetNote = this._meta.notes[targetNoteIdx];
+    const targetNotePath = `${GitNotesCore.NOTES_DIRECTORY}/${this.toValidFilename(
+      targetNote.title,
+    )}.md`;
 
-  async moveContent(originPath: string, targetPath: string) {
-    if (!this._init) throw new Error('Core not initalized');
-    const username = this._username!;
-    const repository = this._repository!;
-    const branch = this._branch!;
-    await this.updateGitTree(username, repository, branch);
-
-    this._refs.tree.forEach(ref => {
-      if (ref.path === originPath) ref.path = targetPath;
-      if (ref.type === 'tree') delete ref.sha;
-    });
-
-    await GithubAPI.postTree(username, repository, this._refs.tree);
-    await GithubAPI.commit(username, repository, this._refs.sha, this._refs.tree, 'Move');
-    await this.updateGitTree(username, repository, branch);
+    return this.getGitContent(targetNotePath)
+      .then(({ data }) =>
+        this.deleteGitContent(targetNotePath, {
+          message: `Delete note: ${targetNote.title}`,
+          sha: data.sha,
+        }),
+      )
+      .then(() => this._meta.notes.splice(targetNoteIdx, 1))
+      .then(() => this.saveMeta());
   }
 }
 

@@ -1,27 +1,23 @@
-import { GitNotesTheme, Note, Tag } from '@/core';
+import { Types as CoreTypes } from '@/core';
+import { initialMeta } from '../../core/index';
 
 export interface State {
-  init: boolean;
-  gitInit: boolean;
+  ready: boolean;
   loading: boolean;
-  databasePrepared: boolean;
   login: string;
   name: string;
   bio: string;
   photo: string;
-  theme: GitNotesTheme;
+  theme: CoreTypes.GitNotesTheme;
   token: string;
   repository: string;
   branch: string;
-  notes: Note[];
-  tags: Tag[];
+  _meta: CoreTypes.GitNotesMeta;
 }
 
 export const state: State = {
-  init: false,
-  gitInit: false,
+  ready: false,
   loading: false,
-  databasePrepared: false,
   login: '',
   name: '',
   bio: '',
@@ -30,6 +26,5 @@ export const state: State = {
   token: '',
   repository: '',
   branch: '',
-  notes: [],
-  tags: [],
+  _meta: initialMeta,
 };

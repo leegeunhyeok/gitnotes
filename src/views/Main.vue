@@ -18,27 +18,19 @@
           <div v-if="available">
             <h3>{{ userName }}</h3>
             <div class="component-group">
-              <Button color="blue" @click="nextToRegistToken">계속하기</Button>
+              <Button color="blue" @click="next">계속하기</Button>
             </div>
             <div class="component-group">
-              <a @click="resetUserProfile">다시 입력할래요</a>
+              <a @click="reset">다른 계정으로 시작할래요</a>
             </div>
           </div>
           <div v-else>
-            <h3>👋 Github 계정을 입력해주세요!</h3>
+            <h3>GitNotes</h3>
             <div class="component-group">
-              <input
-                type="text"
-                placeholder="username"
-                spellcheck="false"
-                @keydown="resetUserProfile"
-                v-model="input"
-              />
-            </div>
-            <div class="component-group">
-              <Button color="blue" :disabled="!input || loading" @click="getUserProfile">{{
-                input && !loading ? '시작하기' : '...'
-              }}</Button>
+              <Button color="blue" @click="login">
+                <span class="github-icon" />
+                GitHub 계정으로 시작하기
+              </Button>
             </div>
           </div>
         </transition>
@@ -51,11 +43,12 @@
 import { defineComponent, ref, computed } from 'vue';
 import { useStore } from '@/store';
 import { useRouter } from 'vue-router';
+import { useLoadingView } from '@/compositions/Loading';
+import { useUser } from '@/compositions/User';
 import { ActionTypes } from '@/store/actions';
 import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
-import GithubAPI from '@/apis/github';
-import M, { messageFrom } from '@/messages';
+import M from '@/messages';
 import Button from '@/components/Button.vue';
 import Image from '@/components/Image.vue';
 
@@ -65,82 +58,79 @@ export default defineComponent({
   setup() {
     const store = useStore();
     const router = useRouter();
+    const LoadingView = useLoadingView();
     const doRegistration = ref(false);
     const photoLoaded = ref(false);
     const input = ref('');
     const available = ref(false);
     const loading = computed(() => store.state.loading);
-    const userName = computed(() => store.state.name);
-    const userBio = computed(() => store.state.bio);
-    const userPhoto = computed(() => store.state.photo);
-    GithubAPI.resetPersonalAccessToken();
 
     // Init (Load user data from IDB -> Fetch git tree -> Load metadata)
     (async function init() {
-      const hasStoredUser = await store.dispatch(ActionTypes.LOAD_USER, undefined);
-      doRegistration.value = !hasStoredUser;
-      if (!hasStoredUser) throw new Error('No user found');
+      const user = await store.dispatch(ActionTypes.LOAD_USER, undefined);
+      doRegistration.value = !user;
+      if (!user) throw new Error('User not found');
+
+      const tokenValidated = await store.dispatch(ActionTypes.TOKEN_VALIDATION, user.token);
+      if (!tokenValidated) throw new Error('Token is not valid');
+
+      const repository = await store.dispatch(ActionTypes.GET_REPOSITORY, {
+        username: user.login,
+        repositoryName: user.repository,
+      });
+      if (!repository) throw new Error('Repository is not valid');
 
       // Show splash image (Minimum 1.5 sec)
       await Promise.all([
         (async () => {
-          await store.dispatch(ActionTypes.GIT_INIT, undefined);
           await store.dispatch(ActionTypes.LOAD_METADATA, undefined);
         })(),
         new Promise(resolve => setTimeout(resolve, 1500)),
       ]);
-      store.commit(MutationTypes.APP_INITIALIZAED, undefined);
       router.push({ name: 'Home' });
     })().catch(() => {
       // Need registration
-      setTimeout(() => {
-        doRegistration.value = true;
-      }, 1000);
+      store
+        .dispatch(ActionTypes.CLEAR_USER, undefined)
+        .then(() => setTimeout(() => (doRegistration.value = true), 1000));
     });
 
-    // Get user profile data from Github API
-    const getUserProfile = () => {
-      store.commit(MutationTypes.SET_LOADING, true);
+    // GitHub Login via Firebase OAuth
+    const login = () => {
       store
-        .dispatch(ActionTypes.GET_PROFILE, input.value)
+        .dispatch(ActionTypes.GITHUB_LOGIN, undefined)
+        .then(token => {
+          store.commit(MutationTypes.SET_TOKEN, token);
+          store.dispatch(ActionTypes.GET_PROFILE, token);
+        })
         .then(() => (available.value = true)) // Success
-        .catch(err => {
-          console.error(err);
-          const status = err?.response?.status;
-          if (status === 403) {
-            showNotification(M.LIMIT_EXECEEDED);
-          } else if (status === 404) {
-            showNotification(M.USER_NOT_FOUND);
-          } else {
-            showNotification(messageFrom(status));
-          }
+        .catch(() => {
+          showNotification(M.USER_NOT_FOUND);
         })
         .finally(() => {
-          store.commit(MutationTypes.SET_LOADING, false);
+          LoadingView.hide();
           store.state.name || store.commit(MutationTypes.SET_NAME, input.value);
         });
     };
 
     // Reset user state (vuex)
-    const resetUserProfile = () => {
+    const reset = () => {
       available.value = false;
       store.commit(MutationTypes.RESET_USER, undefined);
     };
 
-    const nextToRegistToken = () => router.push({ name: 'Token' });
+    const next = () => router.push({ name: 'Repository' });
 
     return {
       doRegistration,
       input,
       available,
       photoLoaded,
-      getUserProfile,
-      resetUserProfile,
-      nextToRegistToken,
+      login,
+      reset,
+      next,
       loading,
-      userName,
-      userBio,
-      userPhoto,
+      ...useUser(),
     };
   },
 });
@@ -228,5 +218,14 @@ $width-limit: 350px;
       color: #999;
     }
   }
+}
+
+span.github-icon {
+  display: inline-block;
+  vertical-align: middle;
+  width: 1rem;
+  height: 1rem;
+  background-image: url('~@/assets/github.svg');
+  background-repeat: no-repeat;
 }
 </style>

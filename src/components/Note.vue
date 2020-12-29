@@ -7,7 +7,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue';
-import { Tag } from '@/core';
+import { Tag } from '@/core/types';
 
 interface NoteProps {
   title: string;

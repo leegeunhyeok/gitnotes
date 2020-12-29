@@ -1,12 +1,23 @@
-/**
- * Github API response data
- */
+export interface FirebaseConfig {
+  apiKey: string;
+  authDomain: string;
+  projectId: string;
+  storageBucket: string;
+  messagingSenderId: string;
+  appId: string;
+  measurementId: string;
+}
+
+export interface GitHubAPIResponse<T> {
+  data: T;
+  status: number;
+}
 
 export type StringOrEmpty = string | null;
 export type NumberOrEmpty = number | null;
 export type BooleanOrEmpty = boolean | null;
 
-export interface User {
+export interface GitHubUser {
   login: string;
   id: number;
   node_id: string;
@@ -41,29 +52,42 @@ export interface User {
   updated_at: StringOrEmpty;
 }
 
-export interface Commit {
+export interface GitHubCommit {
   sha: string;
   node_id: string;
-  url: string;
   html_url: string;
-  author: {
-    name: string;
-    email: string;
-    date: string;
+  commit: {
+    url: string;
+    html_url: string;
+    author: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    committer: {
+      name: string;
+      email: string;
+      date: string;
+    };
+    tree: {
+      sha: string;
+      url: string;
+    };
+    message: string;
   };
-  committer: {
+}
+
+export interface GitHubContent {
+  content: {
     name: string;
-    email: string;
-    date: string;
-  };
-  tree: {
+    path: string;
     sha: string;
     url: string;
   };
-  message: string;
+  commit: GitHubCommit;
 }
 
-export interface Repository {
+export interface GitHubRepository {
   name: string;
   full_name: string;
   html_url: string;
@@ -71,7 +95,7 @@ export interface Repository {
   default_branch: string;
 }
 
-export interface RepositoryFileContent {
+export interface RepositoryContent {
   name: string;
   path: string;
   content: string;
@@ -82,23 +106,10 @@ export interface RepositoryFileContent {
   git_url: string;
   download_url: string;
   type: string;
-  commit: Commit;
+  commit: GitHubCommit;
 }
 
-export interface RepositoryUpdate {
-  content: RepositoryFileContent;
-}
-
-export interface Ref {
-  path: string;
-  mode: string;
-  type: string;
-  size: number;
-  sha?: string;
-  url: string;
-}
-
-export interface GitRef {
+export interface GitHubRef {
   ref: string;
   node_id: string;
   url: string;
@@ -109,9 +120,27 @@ export interface GitRef {
   };
 }
 
-export interface GitTree {
+export interface GitHubTree {
   sha: string;
   url: string;
   tree: Ref[];
   truncated: boolean;
+}
+
+export interface Ref {
+  path: string;
+  mode: string;
+  type: string;
+  size: number;
+  sha?: string;
+}
+
+export interface Commit {
+  message: string;
+  branch?: string;
+  sha?: string;
+}
+
+export interface HashRequiredCommit extends Commit {
+  sha: string;
 }
