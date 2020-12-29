@@ -358,8 +358,11 @@ export class GitNotesCore {
     const targetNote = this._meta.notes.find(note => note.id === noteId);
     if (!targetNote) throw new GitNotesError(`Note ${noteId} not found`);
 
-    const targetTag = this._meta.tags.find(tag => tag.id === targetNote.tag);
-    if (!targetTag) throw new GitNotesError(`Tag ${targetNote.tag} not found`);
+    let targetTag: Tag | null = null;
+    if (targetNote.tag) {
+      targetTag = this._meta.tags.find(tag => tag.id === targetNote.tag) || null;
+      if (!targetTag) throw new GitNotesError(`Tag ${targetNote.tag} not found`);
+    }
 
     const targetNoteFilename = `${this.toValidFilename(targetNote.title)}.md`;
     const targetNoteFilePath = `${GitNotesCore.NOTES_DIRECTORY}/${
