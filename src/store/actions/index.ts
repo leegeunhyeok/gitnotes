@@ -101,8 +101,7 @@ export const actions: ActionTree<State, State> & Actions = {
       return data;
     });
   },
-  [ActionTypes.LOAD_METADATA]({ state, commit }) {
-    if (!state.ready) throw new GitNotesError('Git not initialized');
+  [ActionTypes.LOAD_METADATA]({ commit }) {
     return core.loadMeta().then(meta => {
       const { tags, notes } = meta;
       commit(MutationTypes.SET_TAGS, tags);
