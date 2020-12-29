@@ -26,6 +26,8 @@ export enum ActionTypes {
   DELETE_NOTE = 'DELETE_NOTE',
   // defaults
   LOAD_USER = 'LOAD_USER',
+  SAVE_USER = 'SAVE_USER',
+  CLEAR_USER = 'CLEAR_USER',
 }
 
 export interface Actions {
@@ -64,7 +66,11 @@ export interface Actions {
     context: AugmentedActionContext,
     payload: string,
   ): Promise<CoreTypes.GitNotesMeta>;
-  [ActionTypes.LOAD_USER](context: AugmentedActionContext): Promise<boolean>;
+  [ActionTypes.LOAD_USER](
+    context: AugmentedActionContext,
+  ): Promise<CoreTypes.User & CoreTypes.Profile>;
+  [ActionTypes.SAVE_USER](context: AugmentedActionContext): Promise<boolean>;
+  [ActionTypes.CLEAR_USER](context: AugmentedActionContext): Promise<boolean>;
 }
 
 export const actions: ActionTree<State, State> & Actions = {
@@ -130,8 +136,8 @@ export const actions: ActionTree<State, State> & Actions = {
     return core.deleteNote(noteId);
   },
   [ActionTypes.LOAD_USER]({ commit }) {
-    return core.getUserFromDB().then(user => {
-      if (!user) false;
+    return core.getUser().then(user => {
+      if (!user) null;
       core.initUser(user);
       commit(MutationTypes.SET_LOGIN, user.login);
       commit(MutationTypes.SET_NAME, user.name);
@@ -142,7 +148,14 @@ export const actions: ActionTree<State, State> & Actions = {
         name: user.repository,
         branch: user.branch,
       });
-      return true;
+      return user;
     });
+  },
+  [ActionTypes.SAVE_USER]({ state }) {
+    const { login, name, bio, photo, repository, branch, token } = state;
+    return core.saveUser({ login, name, bio, photo, repository, branch, token, theme: '' });
+  },
+  [ActionTypes.CLEAR_USER]() {
+    return core.deleteUser();
   },
 };

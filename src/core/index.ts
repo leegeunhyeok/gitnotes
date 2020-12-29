@@ -3,8 +3,8 @@ import { encode, decode } from 'js-base64';
 import { GitNotesMeta, User, Profile, Note, Tag, RaiseErrorConfig, ReplaceFileName } from '@/core/types';
 import GitHubCore, { Types as GitHubCoreTypes } from '@/core/github';
 import GitNotesDB from '@/core/database';
-import pkg from '~/package.json';
 export * as Types from '@/core/types';
+import pkg from '~/package.json';
 
 export const initialMeta: GitNotesMeta = {
   version: pkg.version,
@@ -212,12 +212,16 @@ export class GitNotesCore {
     };
   }
 
-  getUserFromDB() {
+  getUser() {
     return this._db.select<User & Profile>('user').then(users => users[0]);
   }
 
+  deleteUser () {
+    return this._db.delete('user').then(affected => affected > 0);
+  }
+
   saveUser(user: User & Profile) {
-    return this._db.insert<User & Profile>('user', user);
+    return this._db.insert<User & Profile>('user', user).then(() => true);
   }
 
   updateUser(user: User & Profile) {
@@ -229,25 +233,24 @@ export class GitNotesCore {
   }
 
   loadMeta() {
+    // Load metadata
+    // or
+    // save new metadata if not exist.
     return this.updateGitTree().then(() => {
       const meta = this._refs.tree.find(ref => ref.path === GitNotesCore.META_FILE_PATH);
-
-      // Load metadata
-      // or
-      // save new metadata if not exist
-      return (meta
-        ? this.getGitContent(GitNotesCore.META_FILE_PATH).then(({ data }) => {
-            const meta = JSON.parse(data.content) as GitNotesMeta;
-            this._metaHash = data.sha;
-            return meta;
-          })
-        : this.saveMeta()
-      ).then(meta => {
+      if (!meta) throw new Error('Metadata not found (maybe this repository is empty)');
+      return this.getGitContent(GitNotesCore.META_FILE_PATH).then(({ data }) => {
+        const meta = JSON.parse(data.content) as GitNotesMeta;
+        this._metaHash = data.sha;
+        return meta;
+      });
+    })
+      .catch(() => this.saveMeta())
+      .then(meta => {
         this._meta = meta;
         this._init = true;
         return meta;
       });
-    });
   }
 
   saveMeta() {
