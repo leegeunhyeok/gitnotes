@@ -78,9 +78,8 @@ export default defineComponent({
         })(),
         new Promise(resolve => setTimeout(resolve, 1500)),
       ]);
-      store.commit(MutationTypes.APP_INITIALIZAED, undefined);
       router.push({ name: 'Home' });
-    })().catch(() => {
+    })().catch(e => {
       // Need registration
       setTimeout(() => (doRegistration.value = true), 1000);
     });
