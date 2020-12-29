@@ -46,7 +46,6 @@ import { MutationTypes } from '@/store/mutations';
 import { showNotification } from '@/services/notification';
 import M, { messageFrom } from '@/messages';
 import Button from '@/components/Button.vue';
-import core from '@/core';
 
 const dotInterval = (tick = 500) => {
   const dotString = '...';
@@ -82,30 +81,22 @@ export default defineComponent({
     !store.getters[GetterTypes.USER_STATE_AVAILABLE] && router.push({ name: 'Main' });
 
     const registUserAndContinue = () => {
-      return core
-        .saveUser({
-          login: store.state.login,
-          name: store.state.name,
-          bio: store.state.bio,
-          photo: store.state.photo,
-          theme: store.state.theme,
-          repository: store.state.repository,
-          branch: store.state.branch,
-          token: store.state.token,
-        })
+      return store
+        .dispatch(ActionTypes.SAVE_USER, undefined)
+        .then(() => store.dispatch(ActionTypes.LOAD_USER, undefined))
         .then(() => {
           done.value = true;
           return Promise.all([
             createNewRepository.value &&
               (async () => {
-                await core.loadMeta();
-                await core.createNote('GitNotes 시작하기', '# GitNotes 시작하기');
+                await store.dispatch(ActionTypes.LOAD_METADATA, undefined);
+                await store.dispatch(ActionTypes.ADD_NOTE, {
+                  title: 'GitNotes 시작하기',
+                  content: '# GitNotes 시작하기',
+                });
               })(),
             new Promise(resolve => setTimeout(resolve, 2000)),
-          ]).then(() => {
-            store.commit(MutationTypes.APP_INITIALIZAED, undefined);
-            router.push({ name: 'Home' });
-          });
+          ]).then(() => router.push({ name: 'Home' }));
         });
     };
 

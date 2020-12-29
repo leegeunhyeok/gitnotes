@@ -67,9 +67,18 @@ export default defineComponent({
 
     // Init (Load user data from IDB -> Fetch git tree -> Load metadata)
     (async function init() {
-      const hasStoredUser = await store.dispatch(ActionTypes.LOAD_USER, undefined);
-      doRegistration.value = !hasStoredUser;
-      if (!hasStoredUser) throw new Error('No user found');
+      const user = await store.dispatch(ActionTypes.LOAD_USER, undefined);
+      doRegistration.value = !user;
+      if (!user) throw new Error('User not found');
+
+      const tokenValidated = await store.dispatch(ActionTypes.TOKEN_VALIDATION, user.token);
+      if (!tokenValidated) throw new Error('Token is not valid');
+
+      const repository = await store.dispatch(ActionTypes.GET_REPOSITORY, {
+        username: user.login,
+        repositoryName: user.repository,
+      });
+      if (!repository) throw new Error('Repository is not valid');
 
       // Show splash image (Minimum 1.5 sec)
       await Promise.all([
@@ -79,9 +88,11 @@ export default defineComponent({
         new Promise(resolve => setTimeout(resolve, 1500)),
       ]);
       router.push({ name: 'Home' });
-    })().catch(e => {
+    })().catch(() => {
       // Need registration
-      setTimeout(() => (doRegistration.value = true), 1000);
+      store
+        .dispatch(ActionTypes.CLEAR_USER, undefined)
+        .then(() => setTimeout(() => (doRegistration.value = true), 1000));
     });
 
     // GitHub Login via Firebase OAuth
