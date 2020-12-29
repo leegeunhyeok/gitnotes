@@ -45,3 +45,5 @@ export type GitNotesTheme =
   | 'blue'
   | 'purple'
   | 'black';
+
+export type ReplaceFileName = string | { origin: string; new: string };

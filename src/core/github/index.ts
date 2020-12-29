@@ -124,7 +124,7 @@ class GitHubCore {
    * @param tree Git reference tree
    */
   async postTree(username: string, repository: string, tree: Ref[]) {
-    return this.toGitHubResponse(
+    return this.toGitHubResponse<GitHubTree>(
       await this._api.post(`/repos/${username}/${repository}/git/trees`, { tree }),
     );
   }
@@ -134,15 +134,15 @@ class GitHubCore {
    * @param username Username
    * @param repository Repository name
    * @param parent Parent commit hash
-   * @param tree Git reference tree
+   * @param treeHash Target tree hash
    * @param message Commit message
    */
-  async commit(username: string, repository: string, parent: string, tree: Ref[], message: string) {
+  async commit(username: string, repository: string, parent: string, treeHash: string, message: string) {
     return this.toGitHubResponse<GitHubCommit>(
       await this._api.post(`/repos/${username}/${repository}/git/commits`, {
         message,
         parents: [parent],
-        tree,
+        tree: treeHash
       }),
     );
   }
