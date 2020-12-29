@@ -8,7 +8,7 @@
       </div>
       <div class="editor__container__body">
         <div class="editor__title">
-          <input type="text" placeholder="제목" spellcheck="false" />
+          <input type="text" placeholder="제목" spellcheck="false" v-model="title" />
         </div>
         <div class="editor__tag">
           <div class="editor__tag--selected" @click="showTagList = !showTagList">
@@ -46,7 +46,7 @@
           </transition>
         </div>
         <div class="editor__content">
-          <textarea v-model="content" placeholder="내용" spellcheck="false" />
+          <textarea placeholder="내용" spellcheck="false" v-model="content" />
         </div>
         <div class="editor__control">
           <Button @click="onSave">저장하기</Button>
@@ -60,17 +60,25 @@
 import { defineComponent, SetupContext, ref } from 'vue';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
-import Button from '@/components/Button.vue';
-import { EmptyTag } from '@/core';
+import { GitNotesCore, EmptyTag } from '@/core';
 import { Tag } from '@/core/types';
 
+import Button from '@/components/Button.vue';
+import { ActionTypes } from '@/store/actions';
+import { useLoadingView } from '@/compositions/Loading';
+
 interface EditorProps {
+  initialTitle?: string;
   initialContent?: string;
 }
 
 export default defineComponent({
   name: 'Editor',
   props: {
+    initialTitle: {
+      type: String,
+      default: '',
+    },
     initialContent: {
       type: String,
       default: '',
@@ -78,15 +86,23 @@ export default defineComponent({
   },
   components: { Button },
   setup(props: EditorProps, { emit }: SetupContext) {
-    const { getters } = useStore();
+    const { getters, dispatch } = useStore();
+    const loadingView = useLoadingView();
     const showTagList = ref(false);
+    const title = ref(props.initialTitle);
     const content = ref(props.initialContent);
     const selectedTag = ref<Tag>(EmptyTag);
 
     const onClose = () => emit('close');
     const onSave = () => {
-      // TODO: Save data (Github, IDB)
-      console.log('save');
+      loadingView.show();
+      dispatch(ActionTypes.ADD_NOTE, {
+        title: title.value || '',
+        content: content.value || '',
+        // tagId
+      })
+        .catch(e => console.error)
+        .finally(() => loadingView.hide());
     };
 
     const setTag = (tag: Tag | null) => {
@@ -99,6 +115,7 @@ export default defineComponent({
       tags: getters[GetterTypes.TAGS],
       selectedTag,
       showTagList,
+      title,
       content,
       onClose,
       onSave,

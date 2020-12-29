@@ -21,6 +21,7 @@ export enum ActionTypes {
   LOAD_METADATA = 'LOAD_METADATA',
   SAVE_METADATA = 'SAVE_METADATA',
   GET_NOTE = 'GET_NOTE',
+  ADD_NOTE = 'ADD_NOTE',
   PUT_NOTE = 'PUT_NOTE',
   DELETE_NOTE = 'DELETE_NOTE',
   // defaults
@@ -51,6 +52,10 @@ export interface Actions {
     payload: CoreTypes.GitNotesMeta,
   ): Promise<CoreTypes.GitNotesMeta>;
   [ActionTypes.GET_NOTE](context: AugmentedActionContext, payload: string): Promise<string>;
+  [ActionTypes.ADD_NOTE](
+    context: AugmentedActionContext,
+    payload: { title: string; content: string; tagId?: string },
+  ): Promise<CoreTypes.GitNotesMeta>;
   [ActionTypes.PUT_NOTE](
     context: AugmentedActionContext,
     payload: { noteId: string; title?: string; content?: string; tagId?: string },
@@ -114,6 +119,9 @@ export const actions: ActionTree<State, State> & Actions = {
   },
   [ActionTypes.GET_NOTE](_, noteId) {
     return core.getNote(noteId);
+  },
+  [ActionTypes.ADD_NOTE](_, { title, content, tagId }) {
+    return core.createNote(title, content, tagId);
   },
   [ActionTypes.PUT_NOTE](_, { noteId, title, content, tagId }) {
     return core.updateNote(noteId, title, content, tagId);
