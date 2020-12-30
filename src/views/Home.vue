@@ -25,12 +25,17 @@
         :title="note.title"
         :tag="note.tag"
         :key="note.id"
-        @click="getNoteContent(note.id)"
+        @click="getNoteContent(note)"
       />
     </main>
     <!-- Notes -->
     <transition name="fade">
-      <NoteEditor v-model:initialContent="content" @close="writing = false" v-show="writing" />
+      <NoteEditor
+        :initialTitle="title"
+        :initialContent="content"
+        @close="writing = false"
+        v-show="writing"
+      />
     </transition>
     <div class="home__footer">
       <Button :color="theme" @click="writing = true">
@@ -41,12 +46,13 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, watch, computed } from 'vue';
+import { defineComponent, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
 import { ActionTypes } from '@/store/actions';
 import { Types as CoreTypes } from '@/core';
+import { useLoadingView } from '@/compositions/Loading';
 import Button from '@/components/Button.vue';
 import Profile from '@/components/Profile.vue';
 import Note from '@/components/Note.vue';
@@ -58,98 +64,11 @@ export default defineComponent({
   setup() {
     const { getters, dispatch } = useStore();
     const router = useRouter();
+    const loadingView = useLoadingView();
     const showFilterList = ref(false);
     const writing = ref(false);
+    const title = ref('');
     const content = ref('');
-    const notes = computed(() => {
-      // getters[GetterTypes.NOTES]
-      // getters[GetterTypes.TAGS]
-      const tags = [
-        {
-          id: 'tag_id',
-          name: 'Web',
-          color: 'blue',
-        },
-      ] as CoreTypes.Tag[];
-
-      return ([
-        {
-          id: 'test',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test2',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test3',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test4',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test5',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test6',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test7',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test8',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test8',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-        {
-          id: 'test8',
-          tag: 'tag_id',
-          title: 'Sample',
-          createdAt: +new Date(),
-          updatedAt: +new Date(),
-        },
-      ] as CoreTypes.Note[]).map(note => {
-        return {
-          ...note,
-          ...(note.tag ? { tag: tags.find(tag => tag.id === note.tag) || note.tag } : null),
-        };
-      });
-    });
     getters[GetterTypes.APPLICATION_INITIALIZED] || router.push({ name: 'Main' });
 
     watch(
@@ -163,15 +82,23 @@ export default defineComponent({
       },
     );
 
-    const getNoteContent = (id: string) => {
-      dispatch(ActionTypes.GET_NOTE, id).then(noteContent => (content.value = noteContent));
+    const getNoteContent = (note: CoreTypes.Note) => {
+      loadingView.show();
+      dispatch(ActionTypes.GET_NOTE, note.id)
+        .then(noteContent => {
+          title.value = note.title;
+          content.value = noteContent;
+          writing.value = true;
+        })
+        .finally(() => loadingView.hide());
     };
 
     return {
       theme: getters[GetterTypes.THEME],
+      notes: getters[GetterTypes.NOTES],
       showFilterList,
-      notes: notes,
       writing,
+      title,
       content,
       getNoteContent,
     };

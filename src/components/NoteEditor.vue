@@ -60,8 +60,7 @@
 import { defineComponent, SetupContext, ref } from 'vue';
 import { useStore } from '@/store';
 import { GetterTypes } from '@/store/getters';
-import { GitNotesCore, EmptyTag } from '@/core';
-import { Tag } from '@/core/types';
+import { EmptyTag, Types as CoreTypes } from '@/core';
 
 import Button from '@/components/Button.vue';
 import { ActionTypes } from '@/store/actions';
@@ -75,23 +74,17 @@ interface EditorProps {
 export default defineComponent({
   name: 'Editor',
   props: {
-    initialTitle: {
-      type: String,
-      default: '',
-    },
-    initialContent: {
-      type: String,
-      default: '',
-    },
+    initialTitle: String,
+    initialContent: String,
   },
   components: { Button },
   setup(props: EditorProps, { emit }: SetupContext) {
     const { getters, dispatch } = useStore();
     const loadingView = useLoadingView();
     const showTagList = ref(false);
-    const title = ref(props.initialTitle);
-    const content = ref(props.initialContent);
-    const selectedTag = ref<Tag>(EmptyTag);
+    const title = ref(props.initialTitle || '');
+    const content = ref(props.initialContent || '');
+    const selectedTag = ref<CoreTypes.Tag>(EmptyTag);
 
     const onClose = () => emit('close');
     const onSave = () => {
@@ -101,11 +94,11 @@ export default defineComponent({
         content: content.value || '',
         // tagId
       })
-        .catch(e => console.error)
+        .catch(console.error)
         .finally(() => loadingView.hide());
     };
 
-    const setTag = (tag: Tag | null) => {
+    const setTag = (tag: CoreTypes.Tag | null) => {
       selectedTag.value = tag || EmptyTag;
       showTagList.value = false;
     };
