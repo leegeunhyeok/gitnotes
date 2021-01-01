@@ -8,7 +8,6 @@ export interface State {
   name: string;
   bio: string;
   photo: string;
-  theme: CoreTypes.GitNotesTheme;
   token: string;
   repository: string;
   branch: string;
@@ -22,7 +21,6 @@ export const state: State = {
   name: '',
   bio: '',
   photo: '',
-  theme: 'blue',
   token: '',
   repository: '',
   branch: '',

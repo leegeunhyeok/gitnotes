@@ -2,7 +2,7 @@
   <div class="editor">
     <div class="editor__container">
       <div class="editor__container__header">
-        <Button :color="theme" @click="onClose">
+        <Button color="primary" @click="onClose">
           <span />
         </Button>
       </div>
@@ -104,7 +104,6 @@ export default defineComponent({
     };
 
     return {
-      theme: getters[GetterTypes.THEME],
       tags: getters[GetterTypes.TAGS],
       selectedTag,
       showTagList,

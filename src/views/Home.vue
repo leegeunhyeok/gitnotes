@@ -38,7 +38,7 @@
       />
     </transition>
     <div class="home__footer">
-      <Button :color="theme" @click="writing = true">
+      <Button color="primary" @click="writing = true">
         <span />
       </Button>
     </div>
@@ -94,7 +94,6 @@ export default defineComponent({
     };
 
     return {
-      theme: getters[GetterTypes.THEME],
       notes: getters[GetterTypes.NOTES],
       showFilterList,
       writing,

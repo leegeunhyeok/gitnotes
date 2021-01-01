@@ -165,7 +165,6 @@ export class GitNotesCore {
         name: String,
         bio: String,
         photo: String,
-        theme: String,
         repository: String,
         branch: String,
         token: String,
