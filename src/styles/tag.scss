@@ -52,6 +52,10 @@
       background-color: t(color-auto-gray-4);
     }
 
+    &.gray {
+      background-color: t(dark);
+    }
+
     &.empty {
       color: t(color-text-tertiary);
       background-color: t(color-bg-secondary);

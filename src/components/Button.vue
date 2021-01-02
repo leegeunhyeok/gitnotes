@@ -65,38 +65,42 @@ export default defineComponent({
 
 @include theme {
   .button {
-    @include button(t(color-auto-white), t(color-auto-black));
+    @include button(t(color-auto-white), t(color-btn-primary-text));
 
     &--red {
-      @include button(t(color-auto-red-4), t(color-auto-white));
+      @include button(t(color-auto-red-4), t(color-btn-primary-text));
     }
 
     &--orange {
-      @include button(t(color-auto-orange-4), t(color-auto-white));
+      @include button(t(color-auto-orange-4), t(color-btn-primary-text));
     }
 
     &--yellow {
-      @include button(t(color-auto-yellow-4), t(color-auto-white));
+      @include button(t(color-auto-yellow-4), t(color-btn-primary-text));
     }
 
     &--green {
-      @include button(t(color-auto-green-4), t(color-auto-white));
+      @include button(t(color-auto-green-4), t(color-btn-primary-text));
     }
 
     &--blue {
-      @include button(t(color-auto-blue-4), t(color-auto-white));
+      @include button(t(color-auto-blue-4), t(color-btn-primary-text));
     }
 
     &--purple {
-      @include button(t(color-auto-purple-4), t(color-auto-white));
+      @include button(t(color-auto-purple-4), t(color-btn-primary-text));
     }
 
     &--pink {
-      @include button(t(color-auto-pink-4), t(color-auto-white));
+      @include button(t(color-auto-pink-4), t(color-btn-primary-text));
     }
 
     &--gray {
-      @include button(t(color-auto-gray-4), t(color-auto-white));
+      @include button(t(color-auto-gray-4), t(color-btn-primary-text));
+    }
+
+    &--dark {
+      @include button(t(dark), t(color-btn-primary-text));
     }
   }
 }

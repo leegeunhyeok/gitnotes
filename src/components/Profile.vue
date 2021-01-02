@@ -92,11 +92,11 @@ $profile_size: 10rem;
         height: $profile_size;
         opacity: 0.5;
         animation: breath 1s 1s alternate infinite;
-        background-color: t(color-auto-gray-3);
+        background-color: t(color-text-primary);
       }
 
       & .image {
-        border: 3px solid t(color-border-primary);
+        border: 3px solid t(color-text-primary);
       }
     }
 

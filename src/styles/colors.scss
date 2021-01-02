@@ -1,6 +1,7 @@
 $default-theme: 'light';
 $scheme: (
   light: (
+    dark: #24292e,
     color-auto-black: #1b1f23,
     color-auto-white: #fff,
     color-auto-gray-3: #d1d5da,
@@ -152,6 +153,7 @@ $scheme: (
     color-label-orange-border: #f66a0a,
   ),
   dark: (
+    dark: #24292e,
     color-auto-black: #f0f6fc,
     color-auto-white: #010409,
     color-auto-gray-3: #30363d,

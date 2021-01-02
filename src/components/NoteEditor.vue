@@ -2,7 +2,7 @@
   <div class="editor">
     <div class="editor__container">
       <div class="editor__container__header">
-        <Button color="primary" @click="onClose">
+        <Button color="dark" @click="onClose">
           <span />
         </Button>
       </div>
