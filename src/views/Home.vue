@@ -177,14 +177,15 @@ export default defineComponent({
     }
 
     &__footer {
+      $background-color: t(color-bg-primary);
       position: fixed;
       bottom: 0;
       left: 0;
       width: 100%;
       padding-top: 1rem;
       padding-bottom: 2rem;
-      background: rgb(255, 255, 255);
-      background: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
+      background: $background-color;
+      background: linear-gradient(0deg, $background-color 0%, rgba(255, 255, 255, 0) 100%);
       @include grow(0.8s);
 
       button {
