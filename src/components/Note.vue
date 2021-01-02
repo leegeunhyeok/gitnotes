@@ -49,12 +49,10 @@ export default defineComponent({
     transition: background-color 0.2s;
 
     &:hover {
-      background-color: #eee;
+      background-color: t(color-btn-hover-bg);
     }
 
     span.tag {
-      color: #fff;
-
       @include size(lg) {
         margin-right: 1rem;
       }
