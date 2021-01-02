@@ -1,4 +1,4 @@
-$theme: (
+$scheme: (
   light: (
     color-auto-black: #1b1f23,
     color-auto-white: #fff,
@@ -315,3 +315,28 @@ $theme: (
     color-label-orange-border: rgba(219, 109, 40, 0.4),
   ),
 );
+
+@mixin theme {
+  @each $theme-name, $scheme in $theme {
+    $map-theme: () !global;
+
+    @each $key, $color in $scheme {
+      $map-theme: map-merge(
+        $map-theme,
+        (
+          $key: $color,
+        )
+      ) !global;
+    }
+
+    body.#{$theme-name} {
+      @content;
+    }
+
+    $map-theme: null !global;
+  }
+}
+
+@function t($key) {
+  @return map-get($map-theme, $key);
+}
