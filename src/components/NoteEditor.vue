@@ -141,38 +141,6 @@ export default defineComponent({
   height: 100%;
   z-index: 9998;
 
-  @at-root #app.red & {
-    background-color: $red;
-  }
-
-  @at-root #app.pink & {
-    background-color: $pink;
-  }
-
-  @at-root #app.orange & {
-    background-color: $orange;
-  }
-
-  @at-root #app.yellow & {
-    background-color: $yellow;
-  }
-
-  @at-root #app.green & {
-    background-color: $green;
-  }
-
-  @at-root #app.blue & {
-    background-color: $blue;
-  }
-
-  @at-root #app.purple & {
-    background-color: $purple;
-  }
-
-  @at-root #app.black & {
-    background-color: $black;
-  }
-
   &__container {
     @include content;
     margin: auto;
@@ -232,7 +200,7 @@ export default defineComponent({
 
     &--selected {
       cursor: pointer;
-      color: darken($gray, 20%);
+      // color: darken($gray, 20%);
       height: 100%;
       text-align: left;
     }

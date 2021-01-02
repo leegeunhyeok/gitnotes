@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import store, { provideStore } from '@/store';
 import Controller from '@/services/notification';
 import Notification from '@/components/Notification.vue';
@@ -30,6 +30,9 @@ const useNotification = () => {
     event.message !== null && (message.value = event.message);
     show.value = event.show;
   });
+
+  const isDark = false;
+  onMounted(() => document.body.classList.add(isDark ? 'dark' : 'light'));
 
   return { show, message };
 };
@@ -51,7 +54,6 @@ export default defineComponent({
 
 #app {
   text-align: center;
-  color: #2c3e50;
   padding: 0;
   margin: 0;
   width: 100%;

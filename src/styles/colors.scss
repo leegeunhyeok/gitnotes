@@ -1,3 +1,4 @@
+$default-theme: 'light';
 $scheme: (
   light: (
     color-auto-black: #1b1f23,
@@ -317,16 +318,22 @@ $scheme: (
 );
 
 @mixin theme {
-  @each $theme-name, $scheme in $theme {
+  @each $theme-name, $theme in $scheme {
     $map-theme: () !global;
 
-    @each $key, $color in $scheme {
+    @each $key, $color in $theme {
       $map-theme: map-merge(
         $map-theme,
         (
           $key: $color,
         )
       ) !global;
+    }
+
+    @if $theme-name == $default-theme {
+      body {
+        @content;
+      }
     }
 
     body.#{$theme-name} {
