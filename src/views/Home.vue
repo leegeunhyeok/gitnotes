@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <header>
-      <Button :class="syncing ? 'syncing' : null">
+      <Button>
         <span />
       </Button>
     </header>
@@ -38,7 +38,7 @@
       />
     </transition>
     <div class="home__footer">
-      <Button color="primary" @click="writing = true">
+      <Button color="dark" @click="writing = true">
         <span />
       </Button>
     </div>
@@ -133,28 +133,17 @@ export default defineComponent({
           display: block;
           width: 24px;
           height: 24px;
-          background-image: url('~@/assets/sync.svg');
-        }
-
-        &.syncing {
-          &:hover {
-            cursor: default;
-            background-color: #fff;
-          }
-
-          & > span {
-            animation: spin 2s linear infinite;
-          }
+          background-image: url('~@/assets/menu.svg');
         }
       }
     }
 
     &__filter {
-      $line-color: t(color-auto-gray-6);
+      $line-color: t(color-border-tertiary);
       position: relative;
       padding: 0 1rem;
       margin-bottom: 1rem;
-      border-bottom: 1px solid #e1e1e1;
+      border-bottom: 1px solid $line-color;
       @include grow(0.6s);
 
       & > button {
@@ -224,12 +213,6 @@ export default defineComponent({
 @keyframes fade {
   100% {
     opacity: 1;
-  }
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(-360deg);
   }
 }
 </style>
