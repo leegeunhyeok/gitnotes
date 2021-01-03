@@ -1,7 +1,6 @@
 <template>
   <div class="profile">
     <div class="profile__photo">
-      <span />
       <Image :src="user.photo" />
     </div>
     <div class="profile__name">
@@ -83,20 +82,8 @@ $profile_size: 10rem;
         -webkit-mask-image: -webkit-radial-gradient(white, black);
       }
 
-      & > span {
-        display: block;
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: $profile_size;
-        height: $profile_size;
-        opacity: 0.5;
-        animation: breath 1s 1s alternate infinite;
-        background-color: t(color-text-primary);
-      }
-
       & .image {
-        border: 3px solid t(color-text-primary);
+        border: 2px solid t(color-border-primary);
       }
     }
 
@@ -170,12 +157,6 @@ $profile_size: 10rem;
   }
   100% {
     transform: scale(1);
-  }
-}
-
-@keyframes breath {
-  100% {
-    transform: scale(1.1);
   }
 }
 </style>
