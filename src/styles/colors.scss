@@ -1,32 +1,41 @@
 $default-theme: 'light';
 $scheme: (
   light: (
+    tint: darken,
     dark: #24292e,
     color-auto-black: #1b1f23,
     color-auto-white: #fff,
     color-auto-gray-3: #d1d5da,
     color-auto-gray-4: #959da5,
+    color-auto-gray-5: #6a737d,
     color-auto-gray-6: #586069,
     color-auto-blue-3: #79b8ff,
     color-auto-blue-4: #2188ff,
+    color-auto-blue-5: #0366d6,
     color-auto-blue-6: #005cc5,
     color-auto-green-3: #85e89d,
     color-auto-green-4: #34d058,
+    color-auto-green-5: #28a745,
     color-auto-green-6: #22863a,
     color-auto-yellow-3: #ffea7f,
     color-auto-yellow-4: #ffdf5d,
+    color-auto-yellow-5: #ffd33d,
     color-auto-yellow-6: #f9c513,
     color-auto-orange-3: #ffab70,
     color-auto-orange-4: #fb8532,
+    color-auto-orange-5: #f66a0a,
     color-auto-orange-6: #e36209,
     color-auto-red-3: #f97583,
     color-auto-red-4: #ea4a5a,
+    color-auto-red-5: #d73a49,
     color-auto-red-6: #cb2431,
     color-auto-purple-3: #b392f0,
     color-auto-purple-4: #8a63d2,
+    color-auto-purple-5: #6f42c1,
     color-auto-purple-6: #5a32a3,
     color-auto-pink-3: #f692ce,
     color-auto-pink-4: #ec6cb9,
+    color-auto-pink-5: #ea4aaa,
     color-auto-pink-6: #d03592,
     color-text-primary: #24292e,
     color-text-secondary: #586069,
@@ -153,32 +162,41 @@ $scheme: (
     color-label-orange-border: #f66a0a,
   ),
   dark: (
+    tint: lighten,
     dark: #24292e,
     color-auto-black: #f0f6fc,
     color-auto-white: #010409,
     color-auto-gray-3: #30363d,
     color-auto-gray-4: #484f58,
+    color-auto-gray-5: #6e7681,
     color-auto-gray-6: #8b949e,
     color-auto-blue-3: #1158c7,
     color-auto-blue-4: #1f6feb,
+    color-auto-blue-5: #388bfd,
     color-auto-blue-6: #58a6ff,
     color-auto-green-3: #196c2e,
     color-auto-green-4: #238636,
+    color-auto-green-5: #2ea043,
     color-auto-green-6: #3fb950,
     color-auto-yellow-3: #845306,
     color-auto-yellow-4: #9e6a03,
+    color-auto-yellow-5: #bb8009,
     color-auto-yellow-6: #d29922,
     color-auto-orange-3: #9b4215,
     color-auto-orange-4: #bd561d,
+    color-auto-orange-5: #db6d28,
     color-auto-orange-6: #f0883e,
     color-auto-red-3: #b62324,
     color-auto-red-4: #da3633,
+    color-auto-red-5: #f85149,
     color-auto-red-6: #ff7b72,
     color-auto-purple-3: #6e40c9,
     color-auto-purple-4: #8957e5,
+    color-auto-purple-5: #a371f7,
     color-auto-purple-6: #bc8cff,
     color-auto-pink-3: #9e3670,
     color-auto-pink-4: #bf4b8a,
+    color-auto-pink-5: #db61a2,
     color-auto-pink-6: #f778ba,
     color-text-primary: #c9d1d9,
     color-text-secondary: #8b949e,
@@ -332,13 +350,7 @@ $scheme: (
       ) !global;
     }
 
-    @if $theme-name == $default-theme {
-      body {
-        @content;
-      }
-    }
-
-    body.#{$theme-name} {
+    body[data-theme='#{$theme-name}'] {
       @content;
     }
 
@@ -346,6 +358,15 @@ $scheme: (
   }
 }
 
-@function t($key) {
+@function color($key) {
   @return map-get($map-theme, $key);
+}
+
+@function tint($color, $percent) {
+  $mode: map-get($map-theme, tint);
+  @if $mode == lighten {
+    @return lighten($color, $percent);
+  } @else {
+    @return darken($color, $percent);
+  }
 }
