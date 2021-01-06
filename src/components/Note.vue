@@ -49,7 +49,7 @@ export default defineComponent({
     transition: background-color 0.2s;
 
     &:hover {
-      background-color: t(color-btn-hover-bg);
+      background-color: color(color-btn-hover-bg);
     }
 
     span.tag {

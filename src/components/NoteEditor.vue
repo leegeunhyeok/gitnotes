@@ -2,7 +2,7 @@
   <div class="editor">
     <div class="editor__container">
       <div class="editor__container__header">
-        <Button color="dark" @click="onClose">
+        <Button color="dark" size="small" @click="onClose">
           <span />
         </Button>
       </div>
@@ -49,7 +49,7 @@
           <textarea placeholder="내용" spellcheck="false" v-model="content" />
         </div>
         <div class="editor__control">
-          <Button @click="onSave">저장하기</Button>
+          <Button color="green" @click="onSave">저장하기</Button>
         </div>
       </div>
     </div>
@@ -125,12 +125,12 @@ export default defineComponent({
 
 @mixin field {
   outline: none;
-  padding: 1rem;
-  font-size: 1rem;
-  border-radius: 25px;
-  background-color: #fff;
-  border: none;
   width: 100%;
+  padding: 0.8rem;
+  font-size: 1rem;
+  border: 1px solid color(color-border-primary);
+  border-radius: 1.5rem;
+  background-color: color(color-bg-tertiary);
 }
 
 @include theme {
@@ -141,7 +141,7 @@ export default defineComponent({
     width: 100%;
     height: 100%;
     z-index: 9998;
-    background-color: t(color-bg-primary);
+    background-color: color(color-bg-primary);
 
     &__container {
       @include content;
@@ -152,10 +152,12 @@ export default defineComponent({
       &__header {
         display: inline-block;
         padding-top: 0;
+        padding-bottom: 1rem;
         width: 100%;
 
         & > button {
           float: right;
+          padding: 0.5rem;
 
           span {
             display: block;
@@ -199,6 +201,7 @@ export default defineComponent({
       width: 100%;
       padding-top: 0.6rem;
       padding-bottom: 0.6rem;
+      color: color(color-text-placeholder);
 
       &--selected {
         cursor: pointer;

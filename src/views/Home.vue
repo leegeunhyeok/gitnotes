@@ -177,7 +177,7 @@ export default defineComponent({
     }
 
     &__footer {
-      $background-color: t(color-bg-primary);
+      $background-color: color(color-bg-primary);
       position: fixed;
       bottom: 0;
       left: 0;

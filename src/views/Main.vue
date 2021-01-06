@@ -157,7 +157,7 @@ $width-limit: 350px;
       max-width: $width-limit;
       border-style: solid;
       border-width: 1px;
-      border-color: t(color-bg-primary);
+      border-color: color(color-bg-primary);
       border-radius: 50%;
       overflow: hidden;
       -webkit-backface-visibility: hidden;
@@ -178,7 +178,7 @@ $width-limit: 350px;
       }
 
       &.outline {
-        border-color: t(color-border-secondary);
+        border-color: color(color-border-secondary);
       }
 
       img {

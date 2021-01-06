@@ -83,7 +83,7 @@ $profile_size: 10rem;
       }
 
       & .image {
-        border: 2px solid t(color-border-primary);
+        border: 2px solid color(color-border-primary);
       }
     }
 
@@ -94,7 +94,7 @@ $profile_size: 10rem;
       &--login {
         font-size: 0.8rem;
         margin: 0.2rem 0;
-        color: t(color-text-tertiary);
+        color: color(color-text-tertiary);
       }
     }
 
@@ -133,7 +133,7 @@ $profile_size: 10rem;
         }
 
         p {
-          color: t(color-text-tertiary);
+          color: color(color-text-tertiary);
           margin: 0;
         }
 
@@ -141,7 +141,7 @@ $profile_size: 10rem;
           position: absolute;
           top: 1.2rem;
           margin: 0;
-          color: t(color-text-tertiary);
+          color: color(color-text-tertiary);
           font-weight: normal;
           width: 100%;
           text-align: center;
