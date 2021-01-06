@@ -1,3 +1,5 @@
+@import 'colors';
+
 div.component-group {
   width: 100%;
   margin-bottom: 0.5rem;
@@ -11,11 +13,18 @@ div.component-group {
   }
 }
 
-input {
-  outline: none;
-  padding: 0.8rem;
-  font-size: 1rem;
-  border: none;
-  border-radius: 3rem;
-  background-color: #eee;
+@include theme {
+  input[type='text'],
+  textarea {
+    outline: none;
+    padding: 0.8rem;
+    font-size: 1rem;
+    border: 1px solid color(color-border-e1e4e8);
+    border-radius: 1.5rem;
+    background-color: color(color-bg-tertiary);
+
+    &::placeholder {
+      color: color(color-text-placeholder);
+    }
+  }
 }
