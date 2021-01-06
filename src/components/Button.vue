@@ -63,39 +63,45 @@ export default defineComponent({
   }
 }
 
-.button {
-  @include button(#fff, $black);
+@include theme {
+  .button {
+    @include button(t(color-auto-white), t(color-btn-primary-text));
 
-  &--red {
-    @include button($red, $white);
-  }
+    &--red {
+      @include button(t(color-auto-red-4), t(color-btn-primary-text));
+    }
 
-  &--orange {
-    @include button($orange, $white);
-  }
+    &--orange {
+      @include button(t(color-auto-orange-4), t(color-btn-primary-text));
+    }
 
-  &--yellow {
-    @include button($yellow, $black);
-  }
+    &--yellow {
+      @include button(t(color-auto-yellow-4), t(color-btn-primary-text));
+    }
 
-  &--green {
-    @include button($green, $white);
-  }
+    &--green {
+      @include button(t(color-auto-green-4), t(color-btn-primary-text));
+    }
 
-  &--blue {
-    @include button($blue, $white);
-  }
+    &--blue {
+      @include button(t(color-auto-blue-4), t(color-btn-primary-text));
+    }
 
-  &--purple {
-    @include button($purple, $white);
-  }
+    &--purple {
+      @include button(t(color-auto-purple-4), t(color-btn-primary-text));
+    }
 
-  &--black {
-    @include button($black, $white);
-  }
+    &--pink {
+      @include button(t(color-auto-pink-4), t(color-btn-primary-text));
+    }
 
-  &--white {
-    @include button($white, $black);
+    &--gray {
+      @include button(t(color-auto-gray-4), t(color-btn-primary-text));
+    }
+
+    &--dark {
+      @include button(t(dark), t(color-btn-primary-text));
+    }
   }
 }
 </style>

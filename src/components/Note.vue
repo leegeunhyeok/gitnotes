@@ -38,67 +38,35 @@ export default defineComponent({
 @import '@/styles/responsive';
 @import '@/styles/tag';
 
-.note {
-  cursor: pointer;
-  display: flex;
-  align-items: flex-start;
-  width: 100%;
-  padding: 0.8rem;
-  border-radius: 8px;
-  transition: background-color 0.2s;
+@include theme {
+  .note {
+    cursor: pointer;
+    display: flex;
+    align-items: flex-start;
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
 
-  &:hover {
-    background-color: #eee;
-  }
-
-  span.tag {
-    color: #fff;
-
-    @include size(lg) {
-      margin-right: 1rem;
+    &:hover {
+      background-color: t(color-btn-hover-bg);
     }
 
-    &.red {
-      background-color: $red;
+    span.tag {
+      @include size(lg) {
+        margin-right: 1rem;
+      }
     }
 
-    &.pink {
-      background-color: $pink;
+    & > p {
+      display: inline-block;
+      margin: 0;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+      overflow: hidden;
+      font-size: 1rem;
+      line-height: 140%;
     }
-
-    &.orange {
-      background-color: $orange;
-    }
-
-    &.yellow {
-      background-color: $yellow;
-    }
-
-    &.green {
-      background-color: $green;
-    }
-
-    &.blue {
-      background-color: $blue;
-    }
-
-    &.purple {
-      background-color: $purple;
-    }
-
-    &.black {
-      background-color: $black;
-    }
-  }
-
-  & > p {
-    display: inline-block;
-    margin: 0;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    font-size: 1rem;
-    line-height: 140%;
   }
 }
 </style>

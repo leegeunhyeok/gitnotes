@@ -142,80 +142,82 @@ export default defineComponent({
 
 $width-limit: 350px;
 
-.main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
+@include theme {
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
 
-  &__logo {
-    width: 70vw;
-    height: 70vw;
-    max-width: $width-limit;
-    border-style: solid;
-    border-width: 1px;
-    border-color: #fff;
-    border-radius: 50%;
-    overflow: hidden;
-    -webkit-backface-visibility: hidden;
-    -moz-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-transform: translateZ(0);
-    -moz-transform: translateZ(0);
-    transform: translateZ(0);
+    &__logo {
+      width: 70vw;
+      height: 70vw;
+      max-width: $width-limit;
+      border-style: solid;
+      border-width: 1px;
+      border-color: t(color-bg-primary);
+      border-radius: 50%;
+      overflow: hidden;
+      -webkit-backface-visibility: hidden;
+      -moz-backface-visibility: hidden;
+      backface-visibility: hidden;
+      -webkit-transform: translateZ(0);
+      -moz-transform: translateZ(0);
+      transform: translateZ(0);
 
-    @include size(md) {
-      width: $width-limit - 80px;
-      height: $width-limit - 80px;
+      @include size(md) {
+        width: $width-limit - 80px;
+        height: $width-limit - 80px;
+      }
+
+      @include size(lg) {
+        width: $width-limit - 40px;
+        height: $width-limit - 40px;
+      }
+
+      &.outline {
+        border-color: t(color-border-secondary);
+      }
+
+      img {
+        display: block;
+        width: 100%;
+      }
     }
 
-    @include size(lg) {
-      width: $width-limit - 40px;
-      height: $width-limit - 40px;
-    }
+    &__regist {
+      width: 80%;
+      max-width: $width-limit;
+      height: 10.8rem;
 
-    &.outline {
-      border-color: $gray;
-    }
+      @include size(md) {
+        width: 75%;
+      }
 
-    img {
-      display: block;
-      width: 100%;
-    }
-  }
+      @include size(lg) {
+        width: 40%;
+      }
 
-  &__regist {
-    width: 80%;
-    max-width: $width-limit;
-    height: 10.8rem;
+      h3 {
+        height: 30px;
+      }
 
-    @include size(md) {
-      width: 75%;
-    }
+      input {
+        text-align: center;
+      }
 
-    @include size(lg) {
-      width: 40%;
-    }
+      input,
+      button {
+        width: 100%;
+      }
 
-    h3 {
-      height: 30px;
-    }
-
-    input {
-      text-align: center;
-    }
-
-    input,
-    button {
-      width: 100%;
-    }
-
-    a {
-      cursor: pointer;
-      font-size: 0.8rem;
-      color: #999;
+      a {
+        cursor: pointer;
+        font-size: 0.8rem;
+        color: #999;
+      }
     }
   }
 }

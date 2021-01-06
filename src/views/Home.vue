@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <header>
-      <Button :class="syncing ? 'syncing' : null">
+      <Button>
         <span />
       </Button>
     </header>
@@ -38,7 +38,7 @@
       />
     </transition>
     <div class="home__footer">
-      <Button :color="theme" @click="writing = true">
+      <Button color="dark" @click="writing = true">
         <span />
       </Button>
     </div>
@@ -94,7 +94,6 @@ export default defineComponent({
     };
 
     return {
-      theme: getters[GetterTypes.THEME],
       notes: getters[GetterTypes.NOTES],
       showFilterList,
       writing,
@@ -116,97 +115,89 @@ export default defineComponent({
   animation: grow 0.5s $delay alternate forwards;
 }
 
-.home {
-  padding: 0.5rem;
-  max-width: 700px;
-  margin: auto;
-
-  header {
-    text-align: right;
+@include theme {
+  .home {
     padding: 0.5rem;
-    padding-bottom: 0;
+    max-width: 700px;
+    margin: auto;
 
-    button {
-      padding: 5px;
+    header {
+      text-align: right;
+      padding: 0.5rem;
+      padding-bottom: 0;
 
-      & > span {
+      button {
+        padding: 5px;
+
+        & > span {
+          display: block;
+          width: 24px;
+          height: 24px;
+          background-image: url('~@/assets/menu.svg');
+        }
+      }
+    }
+
+    &__filter {
+      $line-color: t(color-border-tertiary);
+      position: relative;
+      padding: 0 1rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid $line-color;
+      @include grow(0.6s);
+
+      & > button {
+        position: absolute;
+        left: 50%;
+        bottom: -25px;
+        padding: 0.2rem 0.8rem;
+        border: 1px solid $line-color;
+        height: 24px;
+        width: 60px;
+        background-image: url('~@/assets/filter.svg');
+        background-repeat: no-repeat;
+        background-position: 16px;
+        transform: translate(-50%, -50%);
+      }
+
+      &__list {
+        width: 100%;
+        padding: 1rem 0;
+        max-height: 2rem;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+    }
+
+    main {
+      padding: 0 1rem;
+      margin-bottom: 5.5rem;
+      opacity: 0;
+      animation: fade 0.4s 1s linear forwards;
+    }
+
+    &__footer {
+      $background-color: t(color-bg-primary);
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      padding-top: 1rem;
+      padding-bottom: 2rem;
+      background: $background-color;
+      background: linear-gradient(0deg, $background-color 0%, rgba(255, 255, 255, 0) 100%);
+      @include grow(0.8s);
+
+      button {
+        box-shadow: 0px 0px 16px rgba(0, 0, 0, 0.2);
+      }
+
+      span {
         display: block;
         width: 24px;
         height: 24px;
-        background-image: url('~@/assets/sync.svg');
+        background-image: url('~@/assets/pen.svg');
       }
-
-      &.syncing {
-        &:hover {
-          cursor: default;
-          background-color: #fff;
-        }
-
-        & > span {
-          animation: spin 2s linear infinite;
-        }
-      }
-    }
-  }
-
-  &__filter {
-    $line-color: darken($gray, 5%);
-    position: relative;
-    padding: 0 1rem;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #e1e1e1;
-    @include grow(0.6s);
-
-    & > button {
-      position: absolute;
-      left: 50%;
-      bottom: -25px;
-      padding: 0.2rem 0.8rem;
-      border: 1px solid $line-color;
-      height: 24px;
-      width: 60px;
-      background-image: url('~@/assets/filter.svg');
-      background-repeat: no-repeat;
-      background-position: 16px;
-      transform: translate(-50%, -50%);
-    }
-
-    &__list {
-      width: 100%;
-      padding: 1rem 0;
-      max-height: 2rem;
-      overflow-x: auto;
-      white-space: nowrap;
-    }
-  }
-
-  main {
-    padding: 0 1rem;
-    margin-bottom: 5.5rem;
-    opacity: 0;
-    animation: fade 0.4s 1s linear forwards;
-  }
-
-  &__footer {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    padding-top: 1rem;
-    padding-bottom: 2rem;
-    background: rgb(255, 255, 255);
-    background: linear-gradient(0deg, rgba(255, 255, 255, 1) 0%, rgba(255, 255, 255, 0) 100%);
-    @include grow(0.8s);
-
-    button {
-      box-shadow: 0px 0px 16px rgba(0, 0, 0, 0.2);
-    }
-
-    span {
-      display: block;
-      width: 24px;
-      height: 24px;
-      background-image: url('~@/assets/pen.svg');
     }
   }
 }
@@ -223,12 +214,6 @@ export default defineComponent({
 @keyframes fade {
   100% {
     opacity: 1;
-  }
-}
-
-@keyframes spin {
-  100% {
-    transform: rotate(-360deg);
   }
 }
 </style>

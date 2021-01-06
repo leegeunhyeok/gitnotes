@@ -1,75 +1,71 @@
 @import '@/styles/colors';
 
-span.tag {
-  cursor: pointer;
-  border-radius: 25px;
-  color: #fff;
-  transition: 0.2s;
-  display: inline-block;
-  font-weight: bold;
-
-  &,
-  &__sm {
-    padding: 0.2rem 0.4rem;
+@include theme {
+  span.tag {
+    cursor: pointer;
+    display: inline-block;
+    color: #fff;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: 0.2s;
+    padding: 0.1rem 0.5rem;
     margin-right: 0.5rem;
     font-size: 0.8rem;
-  }
 
-  &__large {
-    padding: 0.4rem 1rem;
-    margin-right: 1rem;
-    font-size: 1rem;
-  }
+    &:nth-last-child(1) {
+      margin-right: 0;
+    }
 
-  &:nth-last-child(1) {
-    margin-right: 0;
-  }
+    &:hover {
+      opacity: 0.5;
+    }
 
-  &:hover {
-    opacity: 0.5;
-  }
+    &.red {
+      background-color: t(color-auto-red-4);
+    }
 
-  &.red {
-    background-color: $red;
-  }
+    &.pink {
+      background-color: t(color-auto-pink-4);
+    }
 
-  &.pink {
-    background-color: $pink;
-  }
+    &.orange {
+      background-color: t(color-auto-orange-4);
+    }
 
-  &.orange {
-    background-color: $orange;
-  }
+    &.yellow {
+      background-color: t(color-auto-yellow-4);
+    }
 
-  &.yellow {
-    background-color: $yellow;
-  }
+    &.green {
+      background-color: t(color-auto-green-4);
+    }
 
-  &.green {
-    background-color: $green;
-  }
+    &.blue {
+      background-color: t(color-auto-blue-4);
+    }
 
-  &.blue {
-    background-color: $blue;
-  }
+    &.purple {
+      background-color: t(color-auto-purple-4);
+    }
 
-  &.purple {
-    background-color: $purple;
-  }
+    &.gray {
+      background-color: t(color-auto-gray-4);
+    }
 
-  &.black {
-    background-color: $black;
-  }
+    &.gray {
+      background-color: t(dark);
+    }
 
-  &.empty {
-    color: lighten($black, 30%);
-    background-color: #fff;
-    border: 1px dashed darken($gray, 20%);
-  }
+    &.empty {
+      color: t(color-text-tertiary);
+      background-color: t(color-bg-secondary);
+      border: 1px dashed t(color-border-primary);
+    }
 
-  &.all {
-    color: lighten($black, 30%);
-    background-color: #fff;
-    border: 1px solid #ddd;
+    &.all {
+      color: t(color-text-tertiary);
+      background-color: t(color-bg-primary);
+      border: 1px solid t(color-border-primary);
+    }
   }
 }

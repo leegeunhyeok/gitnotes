@@ -15,7 +15,6 @@ export interface Profile {
   name: string;
   bio: string;
   photo: string;
-  theme: string;
 }
 
 export interface Tag {
@@ -35,15 +34,5 @@ export interface Note {
 export interface RaiseErrorConfig {
   raiseError?: boolean;
 }
-
-export type GitNotesTheme =
-  | 'red'
-  | 'pink'
-  | 'orange'
-  | 'yellow'
-  | 'green'
-  | 'blue'
-  | 'purple'
-  | 'black';
 
 export type ReplaceFileName = string | { origin: string; new: string };

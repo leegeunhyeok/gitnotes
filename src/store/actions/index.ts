@@ -153,7 +153,7 @@ export const actions: ActionTree<State, State> & Actions = {
   },
   [ActionTypes.SAVE_USER]({ state }) {
     const { login, name, bio, photo, repository, branch, token } = state;
-    return core.saveUser({ login, name, bio, photo, repository, branch, token, theme: '' });
+    return core.saveUser({ login, name, bio, photo, repository, branch, token });
   },
   [ActionTypes.CLEAR_USER]() {
     return core.deleteUser();

@@ -2,7 +2,7 @@
   <div class="editor">
     <div class="editor__container">
       <div class="editor__container__header">
-        <Button :color="theme" @click="onClose">
+        <Button color="dark" @click="onClose">
           <span />
         </Button>
       </div>
@@ -104,7 +104,6 @@ export default defineComponent({
     };
 
     return {
-      theme: getters[GetterTypes.THEME],
       tags: getters[GetterTypes.TAGS],
       selectedTag,
       showTagList,
@@ -134,139 +133,110 @@ export default defineComponent({
   width: 100%;
 }
 
-.editor {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 9998;
-
-  @at-root #app.red & {
-    background-color: $red;
-  }
-
-  @at-root #app.pink & {
-    background-color: $pink;
-  }
-
-  @at-root #app.orange & {
-    background-color: $orange;
-  }
-
-  @at-root #app.yellow & {
-    background-color: $yellow;
-  }
-
-  @at-root #app.green & {
-    background-color: $green;
-  }
-
-  @at-root #app.blue & {
-    background-color: $blue;
-  }
-
-  @at-root #app.purple & {
-    background-color: $purple;
-  }
-
-  @at-root #app.black & {
-    background-color: $black;
-  }
-
-  &__container {
-    @include content;
-    margin: auto;
+@include theme {
+  .editor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
     height: 100%;
-    max-width: 700px;
+    z-index: 9998;
+    background-color: t(color-bg-primary);
 
-    &__header {
-      display: inline-block;
-      padding-top: 0;
-      width: 100%;
+    &__container {
+      @include content;
+      margin: auto;
+      height: 100%;
+      max-width: 700px;
 
-      & > button {
-        float: right;
+      &__header {
+        display: inline-block;
+        padding-top: 0;
+        width: 100%;
 
-        span {
+        & > button {
+          float: right;
+
+          span {
+            display: block;
+            width: 24px;
+            height: 24px;
+            background-image: url('~@/assets/close.svg');
+          }
+        }
+      }
+
+      &__body {
+        position: relative;
+        height: calc(100% - 5rem);
+
+        & > div {
           display: block;
-          width: 24px;
-          height: 24px;
-          background-image: url('~@/assets/close.svg');
+          width: 100%;
+          margin-bottom: 14px;
+        }
+
+        input[type='text'] {
+          @include field;
+        }
+
+        textarea {
+          @include field;
+          resize: none;
+          height: 100%;
+        }
+
+        button {
+          width: 100%;
+          padding: 1rem;
         }
       }
     }
 
-    &__body {
-      position: relative;
-      height: calc(100% - 5rem);
-
-      & > div {
-        display: block;
-        width: 100%;
-        margin-bottom: 14px;
-      }
-
-      input[type='text'] {
-        @include field;
-      }
-
-      textarea {
-        @include field;
-        resize: none;
-        height: 100%;
-      }
-
-      button {
-        width: 100%;
-        padding: 1rem;
-      }
-    }
-  }
-
-  &__tag {
-    @include field;
-    position: relative;
-    width: 100%;
-    padding-top: 0.6rem;
-    padding-bottom: 0.6rem;
-
-    &--selected {
-      cursor: pointer;
-      color: darken($gray, 20%);
-      height: 100%;
-      text-align: left;
-    }
-
-    &__list {
+    &__tag {
       @include field;
-      position: absolute;
-      top: 0;
-      left: 0;
+      position: relative;
       width: 100%;
-      text-align: left;
-      border-radius: 0;
-      border-top-left-radius: 25px;
-      border-top-right-radius: 25px;
-      padding-bottom: 0;
-      border-bottom: 1px solid #eee;
-      max-height: 400px;
-      overflow-y: auto;
+      padding-top: 0.6rem;
+      padding-bottom: 0.6rem;
 
-      & > p {
-        color: #bbbbbb;
-        margin-top: 0;
+      &--selected {
+        cursor: pointer;
+        // color: darken($gray, 20%);
+        height: 100%;
+        text-align: left;
       }
 
-      & > span {
-        display: inline-block;
-        margin-bottom: 1rem;
+      &__list {
+        @include field;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        text-align: left;
+        border-radius: 0;
+        border-top-left-radius: 25px;
+        border-top-right-radius: 25px;
+        padding-bottom: 0;
+        border-bottom: 1px solid #eee;
+        max-height: 400px;
+        overflow-y: auto;
+
+        & > p {
+          color: #bbbbbb;
+          margin-top: 0;
+        }
+
+        & > span {
+          display: inline-block;
+          margin-bottom: 1rem;
+        }
       }
     }
-  }
 
-  &__content {
-    height: calc(100% - 12rem);
+    &__content {
+      height: calc(100% - 12rem);
+    }
   }
 }
 </style>

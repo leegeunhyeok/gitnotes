@@ -1,5 +1,5 @@
 <template>
-  <div id="app" :class="appTheme">
+  <div id="app">
     <transition name="notification">
       <Notification :message="message" v-show="show" />
     </transition>
@@ -15,7 +15,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import store, { provideStore } from '@/store';
 import Controller from '@/services/notification';
 import Notification from '@/components/Notification.vue';
@@ -31,6 +31,9 @@ const useNotification = () => {
     show.value = event.show;
   });
 
+  const isDark = false;
+  onMounted(() => document.body.classList.add(isDark ? 'dark' : 'light'));
+
   return { show, message };
 };
 
@@ -41,8 +44,7 @@ export default defineComponent({
     provideStore();
     const { show, message } = useNotification();
     const isLoading = computed(() => store.state.loading);
-    const appTheme = computed(() => store.state.theme);
-    return { show, message, isLoading, appTheme };
+    return { show, message, isLoading };
   },
 });
 </script>
@@ -52,7 +54,6 @@ export default defineComponent({
 
 #app {
   text-align: center;
-  color: #2c3e50;
   padding: 0;
   margin: 0;
   width: 100%;

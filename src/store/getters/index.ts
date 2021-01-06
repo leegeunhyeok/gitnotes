@@ -25,7 +25,6 @@ export enum GetterTypes {
 }
 
 export interface Getters<S = State> {
-  [GetterTypes.THEME](state: S): CoreTypes.GitNotesTheme;
   [GetterTypes.USER](state: S): UserBasic;
   [GetterTypes.TAGS](state: S): CoreTypes.Tag[];
   [GetterTypes.NOTES](state: S): CoreTypes.Note[];
@@ -36,9 +35,6 @@ export interface Getters<S = State> {
 }
 
 export const getters: GetterTree<State, State> & Getters = {
-  [GetterTypes.THEME]({ theme }) {
-    return theme;
-  },
   [GetterTypes.USER]({ login, name, bio, photo }) {
     return { login, name, bio, photo };
   },
