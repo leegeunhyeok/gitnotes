@@ -4,7 +4,7 @@
 
 <img src="./logo.png" width="400">
 
-GitHub based note web application
+GitHub based note web application (holding)
 
 </div>
 
